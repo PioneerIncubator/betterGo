@@ -1,28 +1,25 @@
-package main
+package enum
 
 import (
-	"fmt"
-
-	"github.com/YongHaoWu/betterGo/enum"
+	"testing"
 )
 
 func mul(a, b int) int {
 	return a * b
 }
 
-func main() {
+func TestReduce(t *testing.T) {
 	a := make([]int, 10)
 	for i := range a {
 		a[i] = i + 1
 	}
 	// Compute 10!
-	out := enum.Reduce(a, mul, 1).(int)
+	out := Reduce(a, mul, 1).(int)
 	expect := 1
 	for i := range a {
 		expect *= a[i]
 	}
 	if expect != out {
-		fmt.Printf("expected %d got %d", expect, out)
+		t.Fatalf("expected %d got %d", expect, out)
 	}
-	fmt.Println("success, ", expect)
 }

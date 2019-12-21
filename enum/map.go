@@ -19,7 +19,7 @@ func InterfaceSlice(slice interface{}) []interface{} {
 	return ret
 }
 
-func Map(listOfElements interface{}, anonymousFunc anonymousFuncType) {
+func Map(listOfElements interface{}, anonymousFunc func(element interface{}) interface{}) {
 	s := InterfaceSlice(listOfElements)
 	for i, v := range s {
 		s[i] = anonymousFunc(v)
