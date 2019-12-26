@@ -34,9 +34,11 @@ func reflectType(fset *token.FileSet, arg interface{}) string {
 	case *ast.BasicLit:
 		s = x.Value
 		fmt.Println("[reflectType] ", s, " is ast.BasicLit ")
+		return "BasicLit"
 	case *ast.Ident:
 		s = x.Name
 		fmt.Println("[reflectType] ", s, " is ast.Ident ")
+		// return "Ident"
 	}
 	return s
 	// if s != "" {
@@ -46,6 +48,63 @@ func reflectType(fset *token.FileSet, arg interface{}) string {
 }
 
 var variableType = map[string]string{}
+
+func recordDefineVarType(fset *token.FileSet, ret *ast.AssignStmt) {
+	fmt.Println("---------------------")
+	// for _, l := range ret.Lhs {
+	// 	assignVar := reflectType(fset, l)
+	// 	fmt.Println("[GenDecl] assignVar is ", assignVar)
+	// }
+	// for _, r := range ret.Rhs {
+	// 	assignType := reflectType(fset, r)
+	// 	if assignType == "make" {
+	// 		fmt.Println("[reflectType] this is make, type is ")
+	// 		assignType = reflectType(fset, r.(*ast.CallExpr).Args[0])
+	// 	}
+	// 	fmt.Println("[GenDecl] AssignType is ", assignType)
+	// }
+
+	if len(ret.Lhs) == len(ret.Rhs) {
+		for i, l := range ret.Lhs {
+			assignVar := reflectType(fset, l)
+			assignType := reflectType(fset, ret.Rhs[i])
+			if assignType == "CallExpr" {
+				expr := ret.Rhs[i].(*ast.CallExpr)
+				if getExprStr(fset, expr.Fun) == "make" {
+					fmt.Println("[reflectType] this is make, type is ")
+					switch x := expr.Args[0].(type) {
+					case *ast.ArrayType:
+						assignType = reflectType(fset, x.Elt)
+						// fmt.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!", assignType)
+						assignType = "ArrayType." + assignType
+					}
+				}
+			}
+			if assignType == "BasicLit" {
+				expr := ret.Rhs[i].(*ast.BasicLit)
+				switch expr.Kind {
+				// 12345
+				case token.INT:
+					assignType = "INT"
+
+					// FLOAT  // 123.45
+					// IMAG   // 123.45i
+					// CHAR   // 'a'
+					// STRING // "abc"
+					// literal_end
+				}
+			}
+
+			fmt.Println("-- assignVar ", assignVar, " assign type ...... ", assignType)
+			variableType[assignVar] = assignType
+		}
+		fmt.Println("[variableType] is ", variableType)
+	}
+	fmt.Println("---------------------")
+	// fmt.Println("[AssignStmt] is ", ret)
+	// fmt.Println("[AssignStmt] is tok ", ret.Tok)
+
+}
 
 func main() {
 	fset := token.NewFileSet()
@@ -67,39 +126,25 @@ func main() {
 
 			if ret, ok := n.(*ast.AssignStmt); ok {
 				if ret.Tok == token.DEFINE {
-					for _, l := range ret.Lhs {
-						assignVar := reflectType(fset, l)
-						fmt.Println("[GenDecl] assignVar is ", assignVar)
-					}
-					for _, r := range ret.Rhs {
-						assignType := reflectType(fset, r)
-						if assignType == "make" {
-							fmt.Println("[reflectType] this is make, type is ")
-							assignType = reflectType(fset, r.(*ast.CallExpr).Args[0])
-						}
-						fmt.Println("[GenDecl] AssignType is ", assignType)
-					}
-
-					if len(ret.Lhs) == len(ret.Rhs) {
-						for i, l := range ret.Lhs {
-							assignVar := reflectType(fset, l)
-							assignType := reflectType(fset, ret.Rhs[i])
-							variableType[assignVar] = assignType
-						}
-						fmt.Println("[variableType] is ", variableType)
-					}
-					// fmt.Println("[AssignStmt] is ", ret)
-					// fmt.Println("[AssignStmt] is tok ", ret.Tok)
-
+					recordDefineVarType(fset, ret)
 				}
 			}
 
+			// call expr, find enum functions
 			if ret, ok := n.(*ast.CallExpr); ok {
 				funName := getExprStr(fset, ret.Fun)
-				fmt.Println("funName", funName)
+				fmt.Println("[CallExpr] funName", funName)
 				switch funName {
 				case "enum.Reduce":
+					// iterate function args to reveal the type
 					for _, arg := range ret.Args {
+						switch x := arg.(type) {
+						case *ast.Ident:
+							argVarName := x.Name
+							fmt.Println("argVarName is ", argVarName)
+							fmt.Println("argVarType is ", variableType[argVarName])
+						}
+						fmt.Println("args is ", arg)
 						reflectType(fset, arg)
 					}
 					return true
