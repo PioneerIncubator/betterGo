@@ -11,7 +11,7 @@ func mul(a, b int) int {
 }
 
 func main() {
-	a := make([]int, 10)
+	a, b := make([]int, 10), 12
 	for i := range a {
 		a[i] = i + 1
 	}
@@ -22,7 +22,7 @@ func main() {
 		expect *= a[i]
 	}
 	if expect != out {
-		fmt.Printf("expected %d got %d", expect, out)
+		fmt.Printf("expected %d got %d , b %d", expect, out, b)
 	}
 	fmt.Println("success, ", expect)
 }
