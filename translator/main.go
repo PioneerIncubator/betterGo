@@ -33,7 +33,7 @@ func reflectType(fset *token.FileSet, arg interface{}) string {
 	switch x := arg.(type) {
 	case *ast.ArrayType:
 		fmt.Println("[reflectType] ArrayType")
-		return "ArrayType"
+		return "[]"
 	case *ast.CallExpr:
 		s := getExprStr(fset, x.Fun)
 		fmt.Println("[reflectType] funName ", s, " is ast.CallExpr ")
@@ -88,7 +88,7 @@ func recordDefineVarType(fset *token.FileSet, ret *ast.AssignStmt) {
 					case *ast.ArrayType:
 						assignType = reflectType(fset, x.Elt)
 						// fmt.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!", assignType)
-						assignType = "ArrayType." + assignType
+						assignType = "[]" + assignType
 					}
 				}
 			}
@@ -156,6 +156,12 @@ func getFuncType(fset *token.FileSet, ret *ast.FuncDecl) string {
 	// }
 }
 
+func generateEnumReduce() {
+
+}
+
+var gen string
+
 func main() {
 	fset := token.NewFileSet()
 	//NOTE ParseDir later
@@ -193,18 +199,35 @@ func main() {
 				switch funName {
 				case "enum.Reduce":
 					// iterate function args to reveal the type
+					//Reduce(slice, pairFunction, zero interface{}) interface{}
+					gen = "func Reduce("
 					for _, arg := range ret.Args {
 						switch x := arg.(type) {
+						case *ast.BasicLit:
+							switch x.Kind {
+							case token.INT:
+								gen = gen + "int"
+							}
 						case *ast.Ident:
 							argVarName := x.Name
 							fmt.Println("argVarName is ", argVarName)
 							fmt.Println("argVarType is ", variableType[argVarName])
+							gen = gen + variableType[argVarName] + ","
 						}
-						fmt.Println("args is ", arg)
-						reflectType(fset, arg)
+						// fmt.Println("args is ", arg)
+						// reflectType(fset, arg)
 					}
+					gen = gen + ")"
+					fmt.Println("gen is ", gen)
 					return true
 				}
+			}
+			if ret, ok := n.(*ast.TypeAssertExpr); ok {
+				assertType := getExprStr(fset, ret.Type)
+				fmt.Println("assertType is ", assertType)
+				gen = gen + assertType
+				fmt.Println("finally gen is ", gen)
+				return true
 			}
 			return true
 		})
