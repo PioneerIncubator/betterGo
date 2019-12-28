@@ -118,6 +118,44 @@ func recordDefineVarType(fset *token.FileSet, ret *ast.AssignStmt) {
 
 }
 
+func getFuncType(fset *token.FileSet, ret *ast.FuncDecl) string {
+	paramsStr := "func ("
+	for i, v := range ret.Type.Params.List {
+		exprType := getExprStr(fset, v.Type)
+		for j := 0; j < len(v.Names); j++ {
+			fmt.Println("[FuncDecl] paramStr", paramsStr)
+			if i+1 == len(ret.Type.Params.List) {
+				paramsStr = paramsStr + exprType + ")"
+			} else {
+				paramsStr = paramsStr + exprType + ", "
+			}
+		}
+	}
+	fmt.Println("[FuncDecl] paramStr", paramsStr)
+
+	resultStr := ""
+	//NOTE (ret1 int,ret2 double )
+	for _, v := range ret.Type.Results.List {
+		// fmt.Println("[FuncDecl] result v", v)
+		exprType := getExprStr(fset, v.Type)
+		if len(v.Names) == 0 {
+			resultStr = exprType
+		} else {
+			for j := 0; j < len(v.Names); j++ {
+				fmt.Println("[FuncDecl] resultStr", resultStr)
+				resultStr = resultStr + exprType + ", "
+			}
+		}
+	}
+	fmt.Println("[FuncDecl] resultStr", resultStr)
+	fmt.Println("[FuncDecl] func origin type is ", paramsStr+resultStr)
+	return paramsStr + resultStr
+	// fmt.Println("[FuncDecl] Type.Results", ret.Type.Results.List)
+	// if ret.Tok == token.DEFINE {         Results
+	// 	recordDefineVarType(fset, ret)
+	// }
+}
+
 func main() {
 	fset := token.NewFileSet()
 	//NOTE ParseDir later
@@ -143,34 +181,9 @@ func main() {
 			}
 
 			if ret, ok := n.(*ast.FuncDecl); ok {
-				fmt.Println("[FuncDecl] Name", ret.Name)
-				fmt.Println("[FuncDecl] Type", ret.Type)
-				fmt.Println("[FuncDecl] Type.Params", ret.Type.Params.List)
-				paramsStr := "func ("
-				for i, v := range ret.Type.Params.List {
-					exprType := getExprStr(fset, v.Type)
-					for j := 0; j < len(v.Names); j++ {
-						fmt.Println("[FuncDecl] paramStr", paramsStr)
-						if i+1 == len(ret.Type.Params.List) {
-							paramsStr = paramsStr + exprType + ")"
-						} else {
-							paramsStr = paramsStr + exprType + ", "
-						}
-					}
-					// for _, ident := range v.Names {
-					// 	fmt.Println("[FuncDecl] name", ident.Name)
-					// 	paramsStr = paramsStr + ident.Name + ","
-					// }
-					// fmt.Println("[FuncDecl] Type.Params v", v)
-					// exprType := getExprStr(fset, v.Type)
-					// fmt.Println("[FuncDecl] Type.Params v.Type", v.Type, "exprType", exprType)
-					// paramsStr = paramsStr + exprType + ", "
+				if ret.Name.Name != "main" {
+					variableType[ret.Name.Name] = getFuncType(fset, ret)
 				}
-				fmt.Println("[FuncDecl] paramStr", paramsStr)
-				// fmt.Println("[FuncDecl] Type.Results", ret.Type.Results.List)
-				// if ret.Tok == token.DEFINE {         Results
-				// 	recordDefineVarType(fset, ret)
-				// }
 			}
 
 			// call expr, find enum functions
