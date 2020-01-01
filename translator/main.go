@@ -8,9 +8,8 @@ import (
 	"go/printer"
 	"go/token"
 	"log"
-	"os"
-	"strconv"
-	"strings"
+
+	"github.com/YongHaoWu/betterGo/utils"
 )
 
 func getExprStr(fset *token.FileSet, expr interface{}) string {
@@ -164,7 +163,7 @@ func extractParamsType(listOfArgs []ast.Expr) string {
 	var paramsType string
 	argname := "argname"
 	for _, arg := range listOfArgs {
-		argname = incrementString(argname, "", 1)
+		argname = utils.IncrementString(argname, "", 1)
 		switch x := arg.(type) {
 		case *ast.BasicLit:
 			switch x.Kind {
@@ -179,30 +178,6 @@ func extractParamsType(listOfArgs []ast.Expr) string {
 		}
 	}
 	return paramsType
-}
-
-func incrementString(str string, separator string, first int) string {
-	if separator == "" {
-		separator = "_"
-	}
-
-	if first == 0 || first < 0 {
-		first = 1
-	}
-
-	test := strings.SplitN(str, separator, 2)
-	if len(test) >= 2 {
-		i, err := strconv.Atoi(test[1])
-
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		increased := i + first
-		return test[0] + separator + strconv.Itoa(increased)
-	} else {
-		return str + separator + strconv.Itoa(first)
-	}
 }
 
 //  func Reduce(argname_1 []int, argname_2 func (int, int, string)int, argname_3 int) int
