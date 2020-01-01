@@ -60,6 +60,8 @@ func reflectType(fset *token.FileSet, arg interface{}) string {
 }
 
 var variableType = map[string]string{}
+var assertPassCnt = 0
+var assertType = ""
 
 func recordDefineVarType(fset *token.FileSet, ret *ast.AssignStmt) {
 	fmt.Println("---------------------")
@@ -159,6 +161,29 @@ func getFuncType(fset *token.FileSet, ret *ast.FuncDecl) string {
 func generateEnumReduce() {
 
 }
+func genEnumFunctions(listOfArgs []ast.Expr) {
+	for _, arg := range listOfArgs {
+		switch x := arg.(type) {
+		case *ast.BasicLit:
+			switch x.Kind {
+			case token.INT:
+				gen = gen + "int"
+			}
+		case *ast.Ident:
+			argVarName := x.Name
+			fmt.Println("argVarName is ", argVarName)
+			fmt.Println("argVarType is ", variableType[argVarName])
+			gen = gen + variableType[argVarName] + ","
+		}
+		// fmt.Println("args is ", arg)
+		// reflectType(fset, arg)
+	}
+	gen = gen + ")"
+	if assertPassCnt == 1 {
+		gen = gen + assertType
+	}
+	fmt.Println("gen is ", gen)
+}
 
 var gen string
 
@@ -171,6 +196,7 @@ func main() {
 	}
 	fmt.Println("Functions:")
 	for _, f := range node.Decls {
+		fmt.Println("loop node.Decls")
 		fn, ok := f.(*ast.FuncDecl)
 		if !ok {
 			continue
@@ -192,6 +218,14 @@ func main() {
 				}
 			}
 
+			if ret, ok := n.(*ast.TypeAssertExpr); ok {
+				assertType = getExprStr(fset, ret.Type)
+				fmt.Println("assertType is ", assertType)
+				// gen = gen + assertType
+				assertPassCnt = 1
+				fmt.Println("finally assertType is ", assertType)
+				return true
+			}
 			// call expr, find enum functions
 			if ret, ok := n.(*ast.CallExpr); ok {
 				funName := getExprStr(fset, ret.Fun)
@@ -201,32 +235,8 @@ func main() {
 					// iterate function args to reveal the type
 					//Reduce(slice, pairFunction, zero interface{}) interface{}
 					gen = "func Reduce("
-					for _, arg := range ret.Args {
-						switch x := arg.(type) {
-						case *ast.BasicLit:
-							switch x.Kind {
-							case token.INT:
-								gen = gen + "int"
-							}
-						case *ast.Ident:
-							argVarName := x.Name
-							fmt.Println("argVarName is ", argVarName)
-							fmt.Println("argVarType is ", variableType[argVarName])
-							gen = gen + variableType[argVarName] + ","
-						}
-						// fmt.Println("args is ", arg)
-						// reflectType(fset, arg)
-					}
-					gen = gen + ")"
-					fmt.Println("gen is ", gen)
-					return true
 				}
-			}
-			if ret, ok := n.(*ast.TypeAssertExpr); ok {
-				assertType := getExprStr(fset, ret.Type)
-				fmt.Println("assertType is ", assertType)
-				gen = gen + assertType
-				fmt.Println("finally gen is ", gen)
+				genEnumFunctions(ret.Args)
 				return true
 			}
 			return true
