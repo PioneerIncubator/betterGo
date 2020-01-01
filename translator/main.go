@@ -8,6 +8,9 @@ import (
 	"go/printer"
 	"go/token"
 	"log"
+	"os"
+	"strconv"
+	"strings"
 )
 
 func getExprStr(fset *token.FileSet, expr interface{}) string {
@@ -123,17 +126,16 @@ func recordDefineVarType(fset *token.FileSet, ret *ast.AssignStmt) {
 func getFuncType(fset *token.FileSet, ret *ast.FuncDecl) string {
 	paramsStr := "func ("
 	for i, v := range ret.Type.Params.List {
+		fmt.Println("loop ret.Type.Params.List", i)
 		exprType := getExprStr(fset, v.Type)
 		for j := 0; j < len(v.Names); j++ {
 			fmt.Println("[FuncDecl] paramStr", paramsStr)
-			if i+1 == len(ret.Type.Params.List) {
-				paramsStr = paramsStr + exprType + ")"
-			} else {
-				paramsStr = paramsStr + exprType + ", "
-			}
+			// func mul(a, b int) int {
+			paramsStr = paramsStr + exprType + ", "
 		}
 	}
-	fmt.Println("[FuncDecl] paramStr", paramsStr)
+	paramsStr = paramsStr[:len(paramsStr)-2] + " )"
+	fmt.Println("[FuncDecl] final paramStr", paramsStr)
 
 	resultStr := ""
 	//NOTE (ret1 int,ret2 double )
@@ -158,34 +160,98 @@ func getFuncType(fset *token.FileSet, ret *ast.FuncDecl) string {
 	// }
 }
 
-func generateEnumReduce() {
-
-}
-func genEnumFunctions(listOfArgs []ast.Expr) {
+func extractParamsType(listOfArgs []ast.Expr) string {
+	var paramsType string
+	argname := "argname"
 	for _, arg := range listOfArgs {
+		argname = incrementString(argname, "", 1)
 		switch x := arg.(type) {
 		case *ast.BasicLit:
 			switch x.Kind {
 			case token.INT:
-				gen = gen + "int"
+				paramsType = fmt.Sprintf("%s %s int", paramsType, argname)
 			}
 		case *ast.Ident:
 			argVarName := x.Name
 			fmt.Println("argVarName is ", argVarName)
 			fmt.Println("argVarType is ", variableType[argVarName])
-			gen = gen + variableType[argVarName] + ","
+			paramsType = fmt.Sprintf("%s %s %s,", paramsType, argname, variableType[argVarName])
 		}
-		// fmt.Println("args is ", arg)
-		// reflectType(fset, arg)
 	}
-	gen = gen + ")"
-	if assertPassCnt == 1 {
-		gen = gen + assertType
-	}
-	fmt.Println("gen is ", gen)
+	return paramsType
 }
 
-var gen string
+func incrementString(str string, separator string, first int) string {
+	if separator == "" {
+		separator = "_"
+	}
+
+	if first == 0 || first < 0 {
+		first = 1
+	}
+
+	test := strings.SplitN(str, separator, 2)
+	if len(test) >= 2 {
+		i, err := strconv.Atoi(test[1])
+
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		increased := i + first
+		return test[0] + separator + strconv.Itoa(increased)
+	} else {
+		return str + separator + strconv.Itoa(first)
+	}
+}
+
+//  func Reduce(argname_1 []int, argname_2 func (int, int, string)int, argname_3 int) int
+func genFunctionBody(funName string) string {
+	var body string
+	switch funName {
+	case "Reduce":
+		body = `
+			lenSlice := len(argname_1)
+			switch lenSlice {
+			case 0:
+				return 0
+			case 1:
+				return argname_1[1]
+			}
+			out := argname_2(argname_3, argname_1[0])
+			next := argname_1[1]
+			for i := 1; i < lenSlice; i++ {
+				next = argname_1[i]
+				out = argname_2(out, next)
+			}
+			return out
+		`
+	}
+	return body
+}
+
+func genEnumFunctionDecl(funName string, listOfArgs []ast.Expr) string {
+	switch funName {
+	case "enum.Reduce":
+		// iterate function args to reveal the type
+		//Reduce(slice, pairFunction, zero interface{}) interface{}
+		funName = "Reduce"
+	}
+	paramsTypeDecl := extractParamsType(listOfArgs)
+	functionBody := genFunctionBody(funName)
+
+	var funcitonDecl string
+	if assertPassCnt == 1 {
+		funcitonDecl = fmt.Sprintf(`func %s(%s) %s {
+%s
+		}`, funName, paramsTypeDecl, assertType, functionBody)
+	} else {
+		funcitonDecl = fmt.Sprintf(`func %s(%s) %s {
+%s
+		}`, funName, paramsTypeDecl, functionBody)
+	}
+	return funcitonDecl
+}
 
 func main() {
 	fset := token.NewFileSet()
@@ -230,13 +296,9 @@ func main() {
 			if ret, ok := n.(*ast.CallExpr); ok {
 				funName := getExprStr(fset, ret.Fun)
 				fmt.Println("[CallExpr] funName", funName)
-				switch funName {
-				case "enum.Reduce":
-					// iterate function args to reveal the type
-					//Reduce(slice, pairFunction, zero interface{}) interface{}
-					gen = "func Reduce("
-				}
-				genEnumFunctions(ret.Args)
+				funDeclStr := genEnumFunctionDecl(funName, ret.Args)
+				fmt.Println("gen funDeclStr  ", funDeclStr)
+
 				return true
 			}
 			return true

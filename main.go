@@ -6,8 +6,7 @@ import (
 	"github.com/YongHaoWu/betterGo/enum"
 )
 
-func mul(a, b int, c string) int {
-	fmt.Println("c", c)
+func mul(a, b int) int {
 	return a * b
 }
 
