@@ -302,17 +302,25 @@ func main() {
 				funName := getExprStr(fset, ret.Fun)
 				fmt.Println("[CallExpr] funName", funName)
 				newFunName, funDeclStr := genEnumFunctionDecl(funName, ret.Args)
+				fmt.Println("[CallExpr] newfunName", newFunName)
 				fmt.Println("gen funDeclStr  ", funDeclStr)
-				fmt.Println("=-=================================", cr.Name)
+				fmt.Println("=-=================================")
 
-				selectorExpr := (ret.Fun.(*ast.Ident))
-				selectorExpr.Name = newFunName
-				// selectorExpr.X.(*ast.Ident).Name = newFunName
+				switch x := ret.Fun.(type) {
+				case *ast.Ident:
+					x.Name = "targetpkg." + newFunName
+					ret.Fun = x
+				case *ast.SelectorExpr:
+					x.X.(*ast.Ident).Name = "targetpkg"
+					x.Sel.Name = newFunName
+					fmt.Println("my..................", x.Sel.Name)
+					ret.Fun = x
+				}
 				cr.Replace(ret)
 				if err := format.Node(os.Stdout, token.NewFileSet(), n); err != nil {
 					log.Fatalln("Error:", err)
 				}
-				fmt.Println("=-=================================")
+				fmt.Println("end=-=================================")
 				return true
 			}
 			return true
