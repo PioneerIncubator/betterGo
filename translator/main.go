@@ -4,12 +4,16 @@ import (
 	"bytes"
 	"fmt"
 	"go/ast"
+	"go/format"
 	"go/parser"
 	"go/printer"
 	"go/token"
 	"log"
+	"os"
+	"strings"
 
 	"github.com/YongHaoWu/betterGo/utils"
+	"golang.org/x/tools/go/ast/astutil"
 )
 
 func getExprStr(fset *token.FileSet, expr interface{}) string {
@@ -159,7 +163,7 @@ func getFuncType(fset *token.FileSet, ret *ast.FuncDecl) string {
 	// }
 }
 
-func extractParamsType(listOfArgs []ast.Expr) string {
+func extractParamsTypeAndName(listOfArgs []ast.Expr) string {
 	var paramsType string
 	argname := "argname"
 	for _, arg := range listOfArgs {
@@ -178,6 +182,22 @@ func extractParamsType(listOfArgs []ast.Expr) string {
 		}
 	}
 	return paramsType
+}
+
+func extractParamsName(listOfArgs []ast.Expr) string {
+	var paramsName string
+	for _, arg := range listOfArgs {
+		switch x := arg.(type) {
+		case *ast.BasicLit:
+			switch x.Kind {
+			case token.INT:
+				paramsName = strings.Title(fmt.Sprintf("%s int", paramsName))
+			}
+		case *ast.Ident:
+			paramsName = fmt.Sprintf("%s %s", paramsName, strings.Title(x.Name))
+		}
+	}
+	return strings.ReplaceAll(paramsName, " ", "")
 }
 
 //  func Reduce(argname_1 []int, argname_2 func (int, int, string)int, argname_3 int) int
@@ -205,16 +225,17 @@ func genFunctionBody(funName string) string {
 	return body
 }
 
-func genEnumFunctionDecl(funName string, listOfArgs []ast.Expr) string {
+func genEnumFunctionDecl(funName string, listOfArgs []ast.Expr) (string, string) {
+	paramsTypeDecl := extractParamsTypeAndName(listOfArgs)
 	switch funName {
 	case "enum.Reduce":
 		// iterate function args to reveal the type
 		//Reduce(slice, pairFunction, zero interface{}) interface{}
 		funName = "Reduce"
 	}
-	paramsTypeDecl := extractParamsType(listOfArgs)
 	functionBody := genFunctionBody(funName)
 
+	funName += extractParamsName(listOfArgs)
 	var funcitonDecl string
 	if assertPassCnt == 1 {
 		funcitonDecl = fmt.Sprintf(`func %s(%s) %s {
@@ -225,7 +246,14 @@ func genEnumFunctionDecl(funName string, listOfArgs []ast.Expr) string {
 %s
 		}`, funName, paramsTypeDecl, functionBody)
 	}
-	return funcitonDecl
+	return funName, funcitonDecl
+}
+
+func replaceOriginFunc() {
+}
+
+func genTargetFuncImplement() {
+
 }
 
 func main() {
@@ -236,13 +264,15 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println("Functions:")
+
 	for _, f := range node.Decls {
 		fmt.Println("loop node.Decls")
 		fn, ok := f.(*ast.FuncDecl)
 		if !ok {
 			continue
 		}
-		ast.Inspect(fn, func(n ast.Node) bool {
+		astutil.Apply(fn, func(cr *astutil.Cursor) bool {
+			n := cr.Node()
 			if ret, ok := n.(*ast.GenDecl); ok {
 				fmt.Println("[GenDecl] is ", ret)
 			}
@@ -271,13 +301,60 @@ func main() {
 			if ret, ok := n.(*ast.CallExpr); ok {
 				funName := getExprStr(fset, ret.Fun)
 				fmt.Println("[CallExpr] funName", funName)
-				funDeclStr := genEnumFunctionDecl(funName, ret.Args)
+				newFunName, funDeclStr := genEnumFunctionDecl(funName, ret.Args)
 				fmt.Println("gen funDeclStr  ", funDeclStr)
+				fmt.Println("=-=================================", cr.Name)
 
+				selectorExpr := (ret.Fun.(*ast.Ident))
+				selectorExpr.Name = newFunName
+				// selectorExpr.X.(*ast.Ident).Name = newFunName
+				cr.Replace(ret)
+				if err := format.Node(os.Stdout, token.NewFileSet(), n); err != nil {
+					log.Fatalln("Error:", err)
+				}
+				fmt.Println("=-=================================")
 				return true
 			}
 			return true
-		})
+		}, nil)
+
+		// ast.Inspect(fn, func(n ast.Node) bool {
+		// 	if ret, ok := n.(*ast.GenDecl); ok {
+		// 		fmt.Println("[GenDecl] is ", ret)
+		// 	}
+
+		// 	if ret, ok := n.(*ast.AssignStmt); ok {
+		// 		if ret.Tok == token.DEFINE {
+		// 			recordDefineVarType(fset, ret)
+		// 		}
+		// 	}
+
+		// 	if ret, ok := n.(*ast.FuncDecl); ok {
+		// 		if ret.Name.Name != "main" {
+		// 			variableType[ret.Name.Name] = getFuncType(fset, ret)
+		// 		}
+		// 	}
+
+		// 	if ret, ok := n.(*ast.TypeAssertExpr); ok {
+		// 		assertType = getExprStr(fset, ret.Type)
+		// 		fmt.Println("assertType is ", assertType)
+		// 		// gen = gen + assertType
+		// 		assertPassCnt = 1
+		// 		fmt.Println("finally assertType is ", assertType)
+		// 		return true
+		// 	}
+		// 	// call expr, find enum functions
+		// 	if ret, ok := n.(*ast.CallExpr); ok {
+		// 		funName := getExprStr(fset, ret.Fun)
+		// 		fmt.Println("[CallExpr] funName", funName)
+		// 		funDeclStr := genEnumFunctionDecl(funName, ret.Args)
+		// 		fmt.Println("gen funDeclStr  ", funDeclStr)
+
+		// 		astutil.Apply(n)
+		// 		return true
+		// 	}
+		// 	return true
+		// })
 	}
 
 }
