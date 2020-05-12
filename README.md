@@ -14,6 +14,10 @@ Use go ast to analyse your code where using generic functions, generate specify 
 
 #### What I actually do
 ![](https://pic1.zhimg.com/50/v2-dd2dc3bc72b058b85774ee804a521165_hd.webp)
+
+
+
 I do this shit for you :P
+
 
 
