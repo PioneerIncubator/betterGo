@@ -27,9 +27,9 @@ func main() {
 	}
 	fmt.Println("success, ", expect)
 
-	var arrayInt = []int{1, 2, 3}
+	// var arrayInt = []int{1, 2, 3}
 	// lambda :=
-	enum.Map(arrayInt, func(a int) int {
-		return a + 1
-	})
+	// enum.Map(arrayInt, func(a int) int {
+	// 	return a + 1
+	// })
 }
