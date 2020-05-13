@@ -44,6 +44,10 @@ func genFunctionBody(funName string) string {
 			}
 			return out
 		`
+	case "Add":
+		body = `
+			return argname_1 + argname_2
+ 		`
 	}
 	return body
 }

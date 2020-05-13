@@ -13,7 +13,8 @@ import (
 func extractParamsTypeAndName(listOfArgs []ast.Expr) string {
 	var paramsType string
 	argname := "argname"
-	for _, arg := range listOfArgs {
+	argsNum := len(listOfArgs)
+	for index, arg := range listOfArgs {
 		argname = utils.IncrementString(argname, "", 1)
 		switch x := arg.(type) {
 		case *ast.BasicLit:
@@ -25,7 +26,11 @@ func extractParamsTypeAndName(listOfArgs []ast.Expr) string {
 			argVarName := x.Name
 			fmt.Println("argVarName is ", argVarName)
 			fmt.Println("argVarType is ", variableType[argVarName])
-			paramsType = fmt.Sprintf("%s %s %s,", paramsType, argname, variableType[argVarName])
+			paramsType = fmt.Sprintf("%s %s %s", paramsType, argname, variableType[argVarName])
+
+			if index != argsNum-1 {
+				paramsType += ","
+			}
 		}
 	}
 	return paramsType

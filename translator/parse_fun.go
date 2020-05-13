@@ -33,7 +33,7 @@ func getFunRetListRawStr(fset *token.FileSet, ret *ast.FuncDecl) string {
 		} else {
 			for j := 0; j < len(v.Names); j++ {
 				fmt.Println("[getFunRetListRawStr] retStr", retStr)
-				retStr = retStr + exprType + ", "
+				retStr = retStr + exprType
 			}
 		}
 	}
@@ -41,13 +41,13 @@ func getFunRetListRawStr(fset *token.FileSet, ret *ast.FuncDecl) string {
 	return retStr
 }
 
-func GetFuncType(fset *token.FileSet, ret *ast.FuncDecl) string {
+func GetFuncType(fset *token.FileSet, ret *ast.FuncDecl) (string, string) {
 	paramsStr := getFunParamListRawStr(fset, ret)
 	retStr := getFunRetListRawStr(fset, ret)
 
 	fmt.Println("[GetFuncType] func origin type is ", paramsStr+retStr)
 	variableType[ret.Name.Name] = paramsStr + retStr
-	return paramsStr + retStr
+	return paramsStr + retStr, retStr
 	// fmt.Println("[FuncDecl] Type.Results", ret.Type.Results.List)
 	// if ret.Tok == token.DEFINE {         Results
 	// 	recordDefineVarType(fset, ret)
