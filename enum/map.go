@@ -19,9 +19,23 @@ func InterfaceSlice(slice interface{}) []interface{} {
 	return ret
 }
 
-func Map(listOfElements interface{}, anonymousFunc func(element interface{}) interface{}) {
-	s := InterfaceSlice(listOfElements)
-	for i, v := range s {
-		s[i] = anonymousFunc(v)
+func Map(slice, anonymousFunc interface{}) {
+	// s := InterfaceSlice(listOfElements)
+	in := reflect.ValueOf(slice)
+	if in.Kind() != reflect.Slice {
+		panic("map: not slice")
 	}
+
+	elemType := in.Type().Elem()
+	fn := reflect.ValueOf(anonymousFunc)
+	if fn.Kind() != reflect.Func {
+		return
+	}
+	ins := []reflect.Value{}
+	for i := 0; i < in.Len(); i++ {
+		ins[i] = fn.Call(in.Index(i))[0]
+	}
+	// for i, v := range in {
+	// 	in[i] = fn.Call(v)[0]
+	// }
 }

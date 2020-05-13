@@ -26,4 +26,10 @@ func main() {
 		fmt.Printf("expected %d got %d , b %d", expect, out, b)
 	}
 	fmt.Println("success, ", expect)
+
+	var arrayInt = []int{1, 2, 3}
+	// lambda :=
+	enum.Map(arrayInt, func(a int) int {
+		return a + 1
+	})
 }
