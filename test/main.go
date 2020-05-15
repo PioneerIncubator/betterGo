@@ -1,6 +1,7 @@
 package main
 
-/*
+import "github.com/YongHaoWu/betterGo/enum"
+
 func mul(a, b int) (c int) {
 	c = a * b
 	return
@@ -27,20 +28,4 @@ func main() {
 	// enum.Map(arrayInt, func(a int) int {
 	// 	return a + 1
 	// })
-}
-
-*/
-func Add(a, b int) int {
-	return a + b
-}
-
-func main() {
-	a, b := 1, 2
-	out := Add(a, b)
-
-	expect := a + b
-	if expect != out {
-		fmt.Printf("expected:%d, out:%d", expect, out)
-	}
-	fmt.Println("success, expect:", expect)
 }
