@@ -25,14 +25,7 @@ func isFunction() {
 
 }
 
-func loopAST(filePath string) {
-	fset := token.NewFileSet()
-	//NOTE ParseDir later
-	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func loopASTNode(fset *token.FileSet, node *ast.File) {
 	for _, f := range node.Decls {
 		// fmt.Println("loop node.Decls")
 		// find a function declaration.
@@ -78,11 +71,6 @@ func loopAST(filePath string) {
 					fmt.Println("[CallExpr] newfunName", newFunName)
 					fmt.Println("gen funDeclStr:  ", funDeclStr)
 				}
-				if strings.Contains(funName, "Add") {
-					newFunName, funDeclStr := translator.GenEnumFunctionDecl(funName, ret.Args)
-					fmt.Println("[CallExpr] newfunName", newFunName)
-					fmt.Println("gen funDeclStr:  ", funDeclStr)
-				}
 
 				// try rewrite the reduce function call
 				/*TODO: useless
@@ -108,6 +96,39 @@ func loopAST(filePath string) {
 		}, nil)
 
 	}
+}
+
+func loopASTFile(filePath string) {
+	fset := token.NewFileSet()
+	//NOTE ParseDir later
+	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
+	if err != nil {
+		log.Fatal(err)
+	}
+	loopASTNode(fset, node)
+}
+
+func loopASTDir(filePath string) {
+	fset := token.NewFileSet()
+	//NOTE ParseDir later
+	pkgs, err := parser.ParseDir(fset, filePath, nil, parser.ParseComments)
+	if err != nil {
+		fmt.Println("parse dir fail", filePath)
+		log.Fatal(err)
+	}
+	for k, v := range pkgs {
+		fmt.Println("pkg k is ", k)
+		for filename, fileNode := range v.Files {
+			fmt.Println("filename  is ", filename)
+			loopASTNode(fset, fileNode)
+		}
+		// type Package struct {
+		// 	Name    string             // package name
+		// 	Scope   *Scope             // package scope across all files
+		// 	Imports map[string]*Object // map of package id -> package object
+		// 	Files   map[string]*File   // Go source files by filename
+		// }
+	}
 
 }
 
@@ -117,12 +138,22 @@ func main() {
 			&cli.StringFlag{
 				Name:    "file",
 				Aliases: []string{"f"},
-				Usage:   "Generate and replace the file with Enum files, default is test/main.go",
-				Value:   "./test/main.go",
+				Usage:   "Generate and replace the file with Enum files",
+			},
+			&cli.StringFlag{
+				Name:    "dir",
+				Aliases: []string{"d"},
+				Usage:   "Generate and replace the dirctory with Enum files",
 			},
 		},
 		Action: func(c *cli.Context) error {
-			loopAST(c.String("file"))
+			if c.String("file") != "" {
+				loopASTFile(c.String("file"))
+			} else if c.String("dir") != "" {
+				loopASTDir(c.String("dir"))
+			} else {
+				log.Fatal("file or dir flag empty")
+			}
 			return nil
 		},
 	}
