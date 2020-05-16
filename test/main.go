@@ -1,10 +1,6 @@
 package main
 
-import (
-	"fmt"
-
-	"github.com/YongHaoWu/betterGo/enum"
-)
+import "github.com/YongHaoWu/betterGo/enum"
 
 func mul(a, b int) (c int) {
 	c = a * b

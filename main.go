@@ -54,7 +54,8 @@ func main() {
 			if ret, ok := n.(*ast.FuncDecl); ok {
 				if ret.Name.Name != "main" {
 					fmt.Println("find fucntion declar  ", ret.Name.Name)
-					translator.GetFuncType(fset, ret)
+					_, assertType := translator.GetFuncType(fset, ret)
+					translator.RecordAssertType(assertType)
 				}
 			}
 
@@ -71,6 +72,11 @@ func main() {
 				funName := translator.GetExprStr(fset, ret.Fun)
 				// fmt.Println("[CallExpr] funName", funName)
 				if strings.Contains(funName, "enum") {
+					newFunName, funDeclStr := translator.GenEnumFunctionDecl(funName, ret.Args)
+					fmt.Println("[CallExpr] newfunName", newFunName)
+					fmt.Println("gen funDeclStr:  ", funDeclStr)
+				}
+				if strings.Contains(funName, "Add") {
 					newFunName, funDeclStr := translator.GenEnumFunctionDecl(funName, ret.Args)
 					fmt.Println("[CallExpr] newfunName", newFunName)
 					fmt.Println("gen funDeclStr:  ", funDeclStr)

@@ -44,6 +44,10 @@ func genFunctionBody(funName string) string {
 			}
 			return out
 		`
+	case "Add":
+		body = `
+			return argname_1 + argname_2
+ 		`
 	}
 	return body
 }
@@ -55,6 +59,8 @@ func GenEnumFunctionDecl(funName string, listOfArgs []ast.Expr) (string, string)
 		// iterate function args to reveal the type
 		//Reduce(slice, pairFunction, zero interface{}) interface{}
 		funName = "Reduce"
+	case "enum.Add":
+		funName = "Add"
 	}
 	functionBody := genFunctionBody(funName)
 

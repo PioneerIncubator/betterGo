@@ -40,7 +40,7 @@ func RecordDefineVarType(fset *token.FileSet, ret *ast.AssignStmt) {
 				switch expr.Kind {
 				// 12345
 				case token.INT:
-					assignType = "INT"
+					assignType = "int"
 
 					// FLOAT  // 123.45
 					// IMAG   // 123.45i
