@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/YongHaoWu/betterGo/enum"
 )
 
 func main() {
 	a, b := 1, 2
-	out := enum.Add(a, b)
+	out := enum.Add(a, b).(int)
 
 	expect := a + b
 	if expect != out {

@@ -6,9 +6,11 @@ import (
 	"go/parser"
 	"go/token"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/YongHaoWu/betterGo/translator"
+	"github.com/urfave/cli/v2"
 	"golang.org/x/tools/go/ast/astutil"
 )
 
@@ -23,10 +25,10 @@ func isFunction() {
 
 }
 
-func main() {
+func loopAST(filePath string) {
 	fset := token.NewFileSet()
 	//NOTE ParseDir later
-	node, err := parser.ParseFile(fset, "./test/main.go", nil, parser.ParseComments)
+	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -54,8 +56,7 @@ func main() {
 			if ret, ok := n.(*ast.FuncDecl); ok {
 				if ret.Name.Name != "main" {
 					fmt.Println("find fucntion declar  ", ret.Name.Name)
-					_, assertType := translator.GetFuncType(fset, ret)
-					translator.RecordAssertType(assertType)
+					translator.GetFuncType(fset, ret)
 				}
 			}
 
@@ -67,6 +68,7 @@ func main() {
 				translator.RecordAssertType(assertType)
 				return true
 			}
+
 			// call expr, find enum functions
 			if ret, ok := n.(*ast.CallExpr); ok {
 				funName := translator.GetExprStr(fset, ret.Fun)
@@ -107,4 +109,26 @@ func main() {
 
 	}
 
+}
+
+func main() {
+	app := &cli.App{
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "file",
+				Aliases: []string{"f"},
+				Usage:   "Generate and replace the file with Enum files, default is test/main.go",
+				Value:   "./test/main.go",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			loopAST(c.String("file"))
+			return nil
+		},
+	}
+
+	err := app.Run(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

@@ -45,7 +45,7 @@ func GetFuncType(fset *token.FileSet, ret *ast.FuncDecl) (string, string) {
 	paramsStr := getFunParamListRawStr(fset, ret)
 	retStr := getFunRetListRawStr(fset, ret)
 
-	fmt.Println("[GetFuncType] func origin type is ", paramsStr+retStr)
+	fmt.Println("[GetFuncType] record ", ret.Name.Name, " func origin type is ", paramsStr+retStr)
 	variableType[ret.Name.Name] = paramsStr + retStr
 	return paramsStr + retStr, retStr
 	// fmt.Println("[FuncDecl] Type.Results", ret.Type.Results.List)
