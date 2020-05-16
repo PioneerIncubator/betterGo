@@ -17,7 +17,8 @@ func IncrementString(str string, separator string, first int) string {
 	}
 
 	test := strings.SplitN(str, separator, 2)
-	if len(test) >= 2 {
+	expect := 2
+	if len(test) >= expect {
 		i, err := strconv.Atoi(test[1])
 
 		if err != nil {
@@ -26,7 +27,7 @@ func IncrementString(str string, separator string, first int) string {
 		}
 		increased := i + first
 		return test[0] + separator + strconv.Itoa(increased)
-	} else {
-		return str + separator + strconv.Itoa(first)
 	}
+
+	return str + separator + strconv.Itoa(first)
 }

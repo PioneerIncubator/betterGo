@@ -33,7 +33,7 @@ func getFunRetListRawStr(fset *token.FileSet, ret *ast.FuncDecl) string {
 		} else {
 			for j := 0; j < len(v.Names); j++ {
 				fmt.Println("[getFunRetListRawStr] retStr", retStr)
-				retStr = retStr + exprType
+				retStr += exprType
 			}
 		}
 	}

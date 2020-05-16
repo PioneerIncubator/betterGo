@@ -14,16 +14,16 @@ import (
 	"golang.org/x/tools/go/ast/astutil"
 )
 
-func replaceOriginFunc() {
-}
+// func replaceOriginFunc() {
+// }
 
-func genTargetFuncImplement() {
+// func genTargetFuncImplement() {
 
-}
+// }
 
-func isFunction() {
+// func isFunction() {
 
-}
+// }
 
 func loopASTNode(fset *token.FileSet, node *ast.File) {
 	for _, f := range node.Decls {
@@ -48,7 +48,7 @@ func loopASTNode(fset *token.FileSet, node *ast.File) {
 
 			if ret, ok := n.(*ast.FuncDecl); ok {
 				if ret.Name.Name != "main" {
-					fmt.Println("find fucntion declar  ", ret.Name.Name)
+					fmt.Println("find function declar  ", ret.Name.Name)
 					translator.GetFuncType(fset, ret)
 				}
 			}
@@ -100,7 +100,6 @@ func loopASTNode(fset *token.FileSet, node *ast.File) {
 
 func loopASTFile(filePath string) {
 	fset := token.NewFileSet()
-	//NOTE ParseDir later
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
 		log.Fatal(err)
@@ -110,7 +109,6 @@ func loopASTFile(filePath string) {
 
 func loopASTDir(filePath string) {
 	fset := token.NewFileSet()
-	//NOTE ParseDir later
 	pkgs, err := parser.ParseDir(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
 		fmt.Println("parse dir fail", filePath)
@@ -122,12 +120,6 @@ func loopASTDir(filePath string) {
 			fmt.Println("filename  is ", filename)
 			loopASTNode(fset, fileNode)
 		}
-		// type Package struct {
-		// 	Name    string             // package name
-		// 	Scope   *Scope             // package scope across all files
-		// 	Imports map[string]*Object // map of package id -> package object
-		// 	Files   map[string]*File   // Go source files by filename
-		// }
 	}
 
 }
@@ -149,11 +141,14 @@ func main() {
 		Action: func(c *cli.Context) error {
 			if c.String("file") != "" {
 				loopASTFile(c.String("file"))
-			} else if c.String("dir") != "" {
-				loopASTDir(c.String("dir"))
-			} else {
-				log.Fatal("file or dir flag empty")
+				return nil
 			}
+			if c.String("dir") != "" {
+				loopASTDir(c.String("dir"))
+				return nil
+			}
+
+			log.Fatal("file or dir flag empty")
 			return nil
 		},
 	}

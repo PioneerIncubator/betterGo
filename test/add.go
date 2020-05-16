@@ -6,7 +6,7 @@ import (
 	"github.com/YongHaoWu/betterGo/enum"
 )
 
-func main() {
+func useAdd() {
 	a, b := 1, 2
 	out := enum.Add(a, b).(int)
 

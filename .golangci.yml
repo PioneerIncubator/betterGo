@@ -1,7 +1,7 @@
-
 run:
   skip-dirs:
     - vendor
+    - test
   modules-download-mode: readonly
 
 linters-settings:
@@ -44,7 +44,6 @@ linters:
     - unparam
     - unused
     - varcheck
-
     - gocognit
     - asciicheck
     - nestif
