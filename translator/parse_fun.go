@@ -25,6 +25,9 @@ func getFunParamListRawStr(fset *token.FileSet, ret *ast.FuncDecl) string {
 func getFunRetListRawStr(fset *token.FileSet, ret *ast.FuncDecl) string {
 	retStr := ""
 	//NOTE (ret1 int,ret2 double )
+	if ret.Type.Results == nil { // could be no return value
+		return retStr
+	}
 	for _, v := range ret.Type.Results.List {
 		// fmt.Println("[getFunRetListRawStr] result v", v)
 		exprType := GetExprStr(fset, v.Type)
