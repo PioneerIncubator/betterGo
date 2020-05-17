@@ -48,6 +48,16 @@ func genFunctionBody(funName string) string {
 		body = `
 			return argname_1 + argname_2
  		`
+	case "Map":
+		body = `
+			lenSlice := len(argname_1)
+			if lenSlice == 0 {
+				return
+			}
+			for i := range argname_1 {
+				argname_1[i] = argname_2(argname_1[i])
+			}
+		`
 	}
 	return body
 }
@@ -61,6 +71,8 @@ func GenEnumFunctionDecl(funName string, listOfArgs []ast.Expr) (string, string)
 		funName = "Reduce"
 	case "enum.Add":
 		funName = "Add"
+	case "enum.Map":
+		funName = "Map"
 	}
 	functionBody := genFunctionBody(funName)
 
@@ -77,6 +89,16 @@ func GenEnumFunctionDecl(funName string, listOfArgs []ast.Expr) (string, string)
 			assertType,
 			functionBody,
 		)
+	} else {
+		funcitonDecl = fmt.Sprintf(
+			`func %s(%s) {
+%s
+		}`,
+			funName,
+			paramsTypeDecl,
+			functionBody,
+		)
+
 	}
 	return funName, funcitonDecl
 }
