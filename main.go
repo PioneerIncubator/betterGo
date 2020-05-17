@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/YongHaoWu/betterGo/translator"
+	"github.com/YongHaoWu/betterGo/file_operations"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/tools/go/ast/astutil"
 )
@@ -17,9 +18,9 @@ import (
 // func replaceOriginFunc() {
 // }
 
-// func genTargetFuncImplement() {
-
-// }
+//func genTargetFuncImplement() {
+//
+//}
 
 // func isFunction() {
 
@@ -70,6 +71,14 @@ func loopASTNode(fset *token.FileSet, node *ast.File) {
 					newFunName, funDeclStr := translator.GenEnumFunctionDecl(funName, ret.Args)
 					fmt.Println("[CallExpr] newfunName", newFunName)
 					fmt.Println("gen funDeclStr:  ", funDeclStr)
+
+					s := strings.Split(funName, ".")
+					filePath := "./utils/" + s[0]
+					fileName := s[1] + ".go"
+					tmpStr := "\n" + funDeclStr
+					buffer := []byte(tmpStr)
+					packageName := "package " + s[0]
+					file_operations.WriteToFile(filePath + "/" + fileName, packageName, buffer)
 				}
 
 				// try rewrite the reduce function call
