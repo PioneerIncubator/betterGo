@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"regexp"
 )
 
@@ -48,7 +49,16 @@ func ReplaceOriginFuncByFile(file, origin, target string) {
 		}
 		fmt.Println(origin, "has been replaced with", target)
 	} else {
-		fmt.Println("ERROR: Can't find ", origin)
+		fmt.Println("Can't find ", origin)
+	}
+}
+
+func ReplaceOriginFuncByDir(path, origin, target string) {
+	files := getFiles(path)
+	for _, file := range files {
+		fmt.Println("File:", file, "is been replacing...")
+		ReplaceOriginFuncByFile(file, origin, target)
+		fmt.Println("File:", file, "...done")
 	}
 }
 
@@ -102,4 +112,22 @@ func writeCallToFile(filePath string, input []byte) error {
 	}
 	writer.Flush()
 	return nil
+}
+
+func getFiles(path string) []string {
+	files := make([]string, 0)
+	err := filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
+		if f == nil {
+			return err
+		}
+		if f.IsDir() {
+			return nil
+		}
+		files = append(files, path)
+		return nil
+	})
+	if err != nil {
+		fmt.Printf("filepath.Walk() returned %v\n", err)
+	}
+	return files
 }

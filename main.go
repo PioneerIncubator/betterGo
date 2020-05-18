@@ -27,6 +27,9 @@ func replaceOriginFunc(ret *ast.CallExpr, funName, newFunName, filePath string, 
 	if !isDir {
 		filePath = "./" + filePath
 		file_operations.ReplaceOriginFuncByFile(filePath, originStr, targetStr)
+	} else {
+		filePath = "./" + filePath
+		file_operations.ReplaceOriginFuncByDir(filePath, originStr, targetStr)
 	}
 }
 
