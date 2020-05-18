@@ -14,7 +14,7 @@ func checkFileExists(filePath string) bool {
 	return exist
 }
 
-func WriteToFile(filePath, packageName string, input []byte) error {
+func WriteFuncToFile(filePath, packageName string, input []byte) error {
 	var f *os.File
 	var err error
 	var exist = true

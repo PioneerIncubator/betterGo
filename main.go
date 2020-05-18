@@ -9,24 +9,38 @@ import (
 	"os"
 	"strings"
 
-	"github.com/YongHaoWu/betterGo/translator"
 	"github.com/YongHaoWu/betterGo/file_operations"
+	"github.com/YongHaoWu/betterGo/translator"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/tools/go/ast/astutil"
 )
 
-// func replaceOriginFunc() {
-// }
+func replaceOriginFunc(ret *ast.CallExpr, funName, newFunName, filePath string, isDir bool) {
+	_, args := translator.ExtractParamsTypeAndName(ret.Args)
+	originStr := file_operations.GenerateCall(funName, args, false, translator.GetAssertType())
+	targetStr := file_operations.GenerateCall(newFunName, args, true, translator.GetAssertType())
+	if !isDir {
+		filePath = "./" + filePath
+		file_operations.ReplaceOriginFuncByFile(filePath, originStr, targetStr)
+	}
+}
 
-//func genTargetFuncImplement() {
-//
-//}
+func genTargetFuncImplement(funName, funDeclStr string) {
+	s := strings.Split(funName, ".")
+	genFilePath := "./utils/" + s[0]
+	genFileName := s[1] + ".go"
+	genFileName = strings.ToLower(genFileName)
+	tmpStr := "\n" + funDeclStr
+	buffer := []byte(tmpStr)
+	packageName := "package " + s[0]
+	file_operations.WriteFuncToFile(genFilePath+"/"+genFileName, packageName, buffer)
+}
 
 // func isFunction() {
 
 // }
 
-func loopASTNode(fset *token.FileSet, node *ast.File) {
+func loopASTNode(fset *token.FileSet, node *ast.File, filePath string, isDir bool) {
 	for _, f := range node.Decls {
 		// fmt.Println("loop node.Decls")
 		// find a function declaration.
@@ -72,13 +86,11 @@ func loopASTNode(fset *token.FileSet, node *ast.File) {
 					fmt.Println("[CallExpr] newfunName", newFunName)
 					fmt.Println("gen funDeclStr:  ", funDeclStr)
 
-					s := strings.Split(funName, ".")
-					filePath := "./utils/" + s[0]
-					fileName := s[1] + ".go"
-					tmpStr := "\n" + funDeclStr
-					buffer := []byte(tmpStr)
-					packageName := "package " + s[0]
-					file_operations.WriteToFile(filePath + "/" + fileName, packageName, buffer)
+					// Generate function to file
+					genTargetFuncImplement(funName, funDeclStr)
+
+					// Replace origin function call statement
+					replaceOriginFunc(ret, funName, newFunName, filePath, isDir)
 				}
 
 				// try rewrite the reduce function call
@@ -113,7 +125,7 @@ func loopASTFile(filePath string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	loopASTNode(fset, node)
+	loopASTNode(fset, node, filePath, false)
 }
 
 func loopASTDir(filePath string) {
@@ -127,7 +139,7 @@ func loopASTDir(filePath string) {
 		fmt.Println("pkg k is ", k)
 		for filename, fileNode := range v.Files {
 			fmt.Println("filename  is ", filename)
-			loopASTNode(fset, fileNode)
+			loopASTNode(fset, fileNode, filePath, true)
 		}
 	}
 
