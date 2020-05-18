@@ -16,9 +16,14 @@ import (
 )
 
 func replaceOriginFunc(ret *ast.CallExpr, funName, newFunName, filePath string, isDir bool) {
+	s := strings.Split(funName, ".")
+	packageName := "gen_" + s[0]
+	newFunName = packageName + "." + newFunName
 	_, args := translator.ExtractParamsTypeAndName(ret.Args)
+
 	originStr := file_operations.GenerateCall(funName, args, false, translator.GetAssertType())
 	targetStr := file_operations.GenerateCall(newFunName, args, true, translator.GetAssertType())
+
 	if !isDir {
 		filePath = "./" + filePath
 		file_operations.ReplaceOriginFuncByFile(filePath, originStr, targetStr)
@@ -32,7 +37,7 @@ func genTargetFuncImplement(funName, funDeclStr string) {
 	genFileName = strings.ToLower(genFileName)
 	tmpStr := "\n" + funDeclStr
 	buffer := []byte(tmpStr)
-	packageName := "package " + s[0]
+	packageName := "package " + "gen_" + s[0]
 	file_operations.WriteFuncToFile(genFilePath+"/"+genFileName, packageName, buffer)
 }
 

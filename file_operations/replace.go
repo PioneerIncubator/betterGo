@@ -36,7 +36,7 @@ func GenerateCall(funName string, args []string, isNew bool, assertType string) 
 	return funName
 }
 
-func ReplaceOriginFuncByFile(file string, origin string, target string) {
+func ReplaceOriginFuncByFile(file, origin, target string) {
 	output, needHandle, err := readFile(file, origin, target)
 	if err != nil {
 		panic(err)
