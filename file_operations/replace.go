@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 // Generate function calling statement by funName and arguments
@@ -38,6 +39,29 @@ func GenerateCall(funName string, args []string, isNew bool, assertType string) 
 }
 
 func ReplaceOriginFuncByFile(file, origin, target string) {
+	output, needHandle, err := readFile(file, origin, target)
+	if err != nil {
+		panic(err)
+	}
+	if needHandle {
+		err = writeCallToFile(file, output)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(origin, "has been replaced with", target)
+
+		// replace import statement
+		packageName := strings.Split(origin, ".")[0]
+		oldImport := "betterGo\\/" + packageName
+		newImport := "betterGo/utils/" + packageName
+		replaceOriginImport(file, oldImport, newImport)
+	} else {
+		fmt.Println("Can't find ", origin)
+	}
+}
+
+// Replace import statement
+func replaceOriginImport(file, origin, target string) {
 	output, needHandle, err := readFile(file, origin, target)
 	if err != nil {
 		panic(err)
