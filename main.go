@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/YongHaoWu/betterGo/file_operations"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -17,9 +18,19 @@ import (
 // func replaceOriginFunc() {
 // }
 
-// func genTargetFuncImplement() {
-
-// }
+// TODO: The dir "./utils/enum/" must exist or will cause panic
+func genTargetFuncImplement(callFunExpr, funDeclStr string) {
+	s := strings.Split(callFunExpr, ".")
+	pkgName := s[0]
+	funName := s[1]
+	genFilePath := fmt.Sprintf("./utils/%s", pkgName)
+	genFileName := fmt.Sprintf("%s.go", funName)
+	genFileName = strings.ToLower(genFileName)
+	tmpStr := fmt.Sprintf("\n%s", funDeclStr)
+	buffer := []byte(tmpStr)
+	pkgStatement := "package " + "gen_" + pkgName
+	file_operations.WriteFuncToFile(genFilePath+"/"+genFileName, pkgStatement, buffer)
+}
 
 // func isFunction() {
 
@@ -70,6 +81,9 @@ func loopASTNode(fset *token.FileSet, node *ast.File) {
 					newFunName, funDeclStr := translator.GenEnumFunctionDecl(funName, ret.Args)
 					fmt.Println("[CallExpr] newfunName", newFunName)
 					fmt.Println("gen funDeclStr:  ", funDeclStr)
+
+					// Generate function to file
+					genTargetFuncImplement(funName, funDeclStr)
 				}
 
 				// try rewrite the reduce function call
