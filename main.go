@@ -24,9 +24,11 @@ func replaceOriginFunc(ret *ast.CallExpr, callFunExpr, newFunName, filePath stri
 	originStr := file_operations.GenerateCallExpr(callFunExpr, args, false, translator.GetAssertType())
 	targetStr := file_operations.GenerateCallExpr(newFunName, args, true, translator.GetAssertType())
 
+	filePath = fmt.Sprintf("./%s", filePath)
 	if !isDir {
-		filePath = fmt.Sprintf("./%s", filePath)
 		file_operations.ReplaceOriginFuncByFile(filePath, originStr, targetStr)
+	} else {
+		file_operations.ReplaceOriginFuncByDir(filePath, originStr, targetStr)
 	}
 }
 
