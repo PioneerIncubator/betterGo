@@ -15,8 +15,15 @@ import (
 	"golang.org/x/tools/go/ast/astutil"
 )
 
-// func replaceOriginFunc() {
-// }
+func replaceOriginFunc(ret *ast.CallExpr, funName, newFunName, filePath string, isDir bool) {
+	_, args := translator.ExtractParamsTypeAndName(ret.Args)
+	originStr := file_operations.GenerateCallExpr(funName, args, false, translator.GetAssertType())
+	targetStr := file_operations.GenerateCallExpr(newFunName, args, true, translator.GetAssertType())
+	if !isDir {
+		filePath = fmt.Sprintf("./%s", filePath)
+		file_operations.ReplaceOriginFuncByFile(filePath, originStr, targetStr)
+	}
+}
 
 // TODO: The dir "./utils/enum/" must exist or will cause panic
 func genTargetFuncImplement(callFunExpr, funDeclStr string) {
@@ -36,7 +43,7 @@ func genTargetFuncImplement(callFunExpr, funDeclStr string) {
 
 // }
 
-func loopASTNode(fset *token.FileSet, node *ast.File) {
+func loopASTNode(fset *token.FileSet, node *ast.File, filePath string, isDir bool) {
 	for _, f := range node.Decls {
 		// fmt.Println("loop node.Decls")
 		// find a function declaration.
@@ -84,6 +91,9 @@ func loopASTNode(fset *token.FileSet, node *ast.File) {
 
 					// Generate function to file
 					genTargetFuncImplement(funName, funDeclStr)
+
+					// Replace origin function call expression
+					replaceOriginFunc(ret, funName, newFunName, filePath, isDir)
 				}
 
 				// try rewrite the reduce function call
@@ -113,15 +123,17 @@ func loopASTNode(fset *token.FileSet, node *ast.File) {
 }
 
 func loopASTFile(filePath string) {
+	isDir := false
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
 		log.Fatal(err)
 	}
-	loopASTNode(fset, node)
+	loopASTNode(fset, node, filePath, isDir)
 }
 
 func loopASTDir(filePath string) {
+	isDir := true
 	fset := token.NewFileSet()
 	pkgs, err := parser.ParseDir(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
@@ -132,7 +144,7 @@ func loopASTDir(filePath string) {
 		fmt.Println("pkg k is ", k)
 		for filename, fileNode := range v.Files {
 			fmt.Println("filename  is ", filename)
-			loopASTNode(fset, fileNode)
+			loopASTNode(fset, fileNode, filePath, isDir)
 		}
 	}
 

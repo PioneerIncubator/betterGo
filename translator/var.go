@@ -18,6 +18,10 @@ func RecordAssertType(input string) {
 	// fmt.Println("finally assertType is ", assertType)
 }
 
+func GetAssertType() string {
+	return assertType
+}
+
 func RecordDefineVarType(fset *token.FileSet, ret *ast.AssignStmt) {
 	fmt.Println("---------------------")
 	if len(ret.Lhs) == len(ret.Rhs) {
