@@ -15,10 +15,15 @@ import (
 	"golang.org/x/tools/go/ast/astutil"
 )
 
-func replaceOriginFunc(ret *ast.CallExpr, funName, newFunName, filePath string, isDir bool) {
+func replaceOriginFunc(ret *ast.CallExpr, callFunExpr, newFunName, filePath string, isDir bool) {
+	s := strings.Split(callFunExpr, ".")
+	pkgName := s[0]
+	newFunName = fmt.Sprintf("gen_%s.%s", pkgName, newFunName)
 	_, args := translator.ExtractParamsTypeAndName(ret.Args)
-	originStr := file_operations.GenerateCallExpr(funName, args, false, translator.GetAssertType())
+
+	originStr := file_operations.GenerateCallExpr(callFunExpr, args, false, translator.GetAssertType())
 	targetStr := file_operations.GenerateCallExpr(newFunName, args, true, translator.GetAssertType())
+
 	if !isDir {
 		filePath = fmt.Sprintf("./%s", filePath)
 		file_operations.ReplaceOriginFuncByFile(filePath, originStr, targetStr)
@@ -35,8 +40,9 @@ func genTargetFuncImplement(callFunExpr, funDeclStr string) {
 	genFileName = strings.ToLower(genFileName)
 	tmpStr := fmt.Sprintf("\n%s", funDeclStr)
 	buffer := []byte(tmpStr)
-	pkgStatement := "package " + "gen_" + pkgName
-	file_operations.WriteFuncToFile(genFilePath+"/"+genFileName, pkgStatement, buffer)
+	pkgStatement := fmt.Sprintf("package gen_%s", pkgName)
+	filePath := fmt.Sprintf("%s/%s", genFilePath, genFileName)
+	file_operations.WriteFuncToFile(filePath, pkgStatement, buffer)
 }
 
 // func isFunction() {
