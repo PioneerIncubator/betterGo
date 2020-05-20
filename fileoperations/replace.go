@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 // Generate function calling statement by funName and arguments
@@ -49,6 +50,15 @@ func ReplaceOriginFuncByFile(file, origin, target string) {
 		}
 		fmt.Println(origin, "has been replaced with", target)
 
+		// replace import statement
+		dir, _ := os.Getwd()                                  // get current dir, equal to "pwd", like "/Users/.../src/.../test"
+		gopath := fmt.Sprintf("%s/src/", os.Getenv("GOPATH")) // get env "GOPATH", like "/Users/.../src/"
+		pkgName := strings.Split(origin, ".")[0]              // get package name, like "enum"
+		oldPath := strings.Replace(dir, gopath, "", -1)       // oldPath == dir - gopath, like ".../test"
+		oldImport := fmt.Sprintf("github.com/YongHaoWu/betterGo/%s", pkgName)
+		newImport := fmt.Sprintf("%s/utils/%s", oldPath, pkgName)
+		replaceOriginImport(file, oldImport, newImport)
+
 	} else {
 		fmt.Println("Can't find ", origin)
 	}
@@ -60,6 +70,22 @@ func ReplaceOriginFuncByDir(path, origin, target string) {
 		fmt.Println("File:", file, "is been replacing...")
 		ReplaceOriginFuncByFile(file, origin, target)
 		fmt.Println("File:", file, "...done")
+	}
+}
+
+func replaceOriginImport(file, origin, target string) {
+	output, needHandle, err := readFile(file, origin, target)
+	if err != nil {
+		panic(err)
+	}
+	if needHandle {
+		err = writeCallExprToFile(file, output)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(origin, "has been replaced with", target)
+	} else {
+		fmt.Println("Can't find ", origin)
 	}
 }
 
