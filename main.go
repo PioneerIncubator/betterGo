@@ -19,7 +19,7 @@ func replaceOriginFunc(ret *ast.CallExpr, callFunExpr, newFunName, filePath stri
 	s := strings.Split(callFunExpr, ".")
 	pkgName := s[0]
 	newFunName = fmt.Sprintf("gen_%s.%s", pkgName, newFunName)
-	_, args := translator.ExtractParamsTypeAndName(ret.Args)
+	_, args, _ := translator.ExtractParamsTypeAndName(ret.Args)
 
 	originStr := file_operations.GenerateCallExpr(callFunExpr, args, false, translator.GetAssertType())
 	targetStr := file_operations.GenerateCallExpr(newFunName, args, true, translator.GetAssertType())
@@ -33,18 +33,29 @@ func replaceOriginFunc(ret *ast.CallExpr, callFunExpr, newFunName, filePath stri
 }
 
 // TODO: The dir "./utils/enum/" must exist or will cause panic
-func genTargetFuncImplement(callFunExpr, funDeclStr string) {
+func genTargetFuncImplement(ret *ast.CallExpr, callFunExpr, funDeclStr string) (bool, string) {
+	var funcExists = false
+	var previousFuncName = ""
 	s := strings.Split(callFunExpr, ".")
 	pkgName := s[0]
 	funName := s[1]
 	genFilePath := fmt.Sprintf("./utils/%s", pkgName)
 	genFileName := fmt.Sprintf("%s.go", funName)
 	genFileName = strings.ToLower(genFileName)
-	tmpStr := fmt.Sprintf("\n%s", funDeclStr)
-	buffer := []byte(tmpStr)
-	pkgStatement := fmt.Sprintf("package gen_%s", pkgName)
 	filePath := fmt.Sprintf("%s/%s", genFilePath, genFileName)
-	file_operations.WriteFuncToFile(filePath, pkgStatement, buffer)
+
+	_, _, listOfArgTypes := translator.ExtractParamsTypeAndName(ret.Args)
+	funcExists, previousFuncName = file_operations.CheckFuncExists(filePath, listOfArgTypes)
+	if funcExists {
+		return funcExists, previousFuncName
+	} else {
+		tmpStr := fmt.Sprintf("\n%s", funDeclStr)
+		buffer := []byte(tmpStr)
+		pkgStatement := fmt.Sprintf("package gen_%s", pkgName)
+		file_operations.WriteFuncToFile(filePath, pkgStatement, buffer)
+	}
+
+	return funcExists, previousFuncName
 }
 
 // func isFunction() {
@@ -98,10 +109,14 @@ func loopASTNode(fset *token.FileSet, node *ast.File, filePath string, isDir boo
 					fmt.Println("gen funDeclStr:  ", funDeclStr)
 
 					// Generate function to file
-					genTargetFuncImplement(funName, funDeclStr)
+					funcExists, prevFuncName := genTargetFuncImplement(ret, funName, funDeclStr)
 
 					// Replace origin function call expression
-					replaceOriginFunc(ret, funName, newFunName, filePath, isDir)
+					if funcExists {
+						replaceOriginFunc(ret, funName, prevFuncName, filePath, isDir)
+					} else {
+						replaceOriginFunc(ret, funName, newFunName, filePath, isDir)
+					}
 				}
 
 				// try rewrite the reduce function call
