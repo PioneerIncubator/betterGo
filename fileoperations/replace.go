@@ -1,4 +1,4 @@
-package file_operations
+package fileoperations
 
 import (
 	"bufio"
@@ -96,16 +96,15 @@ func readFile(filePath, origin, target string) ([]byte, bool, error) {
 			output = append(output, []byte("\n")...)
 		}
 	}
-	return output, needHandle, nil
 }
 
 // Write target function calling statement to the file
 func writeCallExprToFile(filePath string, input []byte) error {
 	f, err := os.OpenFile(filePath, os.O_WRONLY|os.O_TRUNC, 0600)
-	defer f.Close()
 	if err != nil {
-		return err
+		panic(err)
 	}
+	defer f.Close()
 	writer := bufio.NewWriter(f)
 	_, err = writer.Write(input)
 	if err != nil {

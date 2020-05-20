@@ -1,4 +1,4 @@
-package file_operations
+package fileoperations
 
 import (
 	"bufio"
@@ -20,7 +20,7 @@ func CheckFuncExists(filePath string, listOfArgTypes []string) (bool, string) {
 	var funcExists = false
 	var funcName = ""
 	if !checkFileExists(filePath) {
-		return false, funcName
+		return funcExists, funcName
 	}
 
 	for j, str := range listOfArgTypes {
@@ -66,7 +66,6 @@ func matchFunc(filePath, origin string) (bool, string) {
 	f, err := os.OpenFile(filePath, os.O_RDONLY, 0644)
 	if err != nil {
 		panic(err)
-		return false, funcName
 	}
 	defer f.Close()
 
@@ -78,7 +77,6 @@ func matchFunc(filePath, origin string) (bool, string) {
 				return false, funcName
 			}
 			panic(err)
-			return false, funcName
 		}
 
 		if ok, _ := regexp.Match(origin, line); ok {
@@ -102,7 +100,7 @@ func getFuncNameFromLine(line []byte) string {
 	return funcName
 }
 
-func ensureFileExists(filePath string) (*os.File, error, bool) {
+func ensureFileExists(filePath string) (*os.File, bool, error) {
 	var f *os.File
 	var err error
 	var exist = false
@@ -115,18 +113,16 @@ func ensureFileExists(filePath string) (*os.File, error, bool) {
 
 	if err != nil {
 		panic(err)
-		return nil, err, exist
 	}
 
-	return f, err, exist
+	return f, exist, err
 }
 
 func WriteFuncToFile(filePath, packageName string, input []byte) error {
-	f, err, exist := ensureFileExists(filePath)
+	f, exist, err := ensureFileExists(filePath)
 	defer f.Close()
 	if err != nil {
 		panic(err)
-		return err
 	}
 
 	writer := bufio.NewWriter(f)

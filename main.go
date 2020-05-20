@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/YongHaoWu/betterGo/file_operations"
+	"github.com/YongHaoWu/betterGo/fileoperations"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -18,24 +18,22 @@ import (
 func replaceOriginFunc(ret *ast.CallExpr, callFunExpr, newFunName, filePath string, isDir bool) {
 	s := strings.Split(callFunExpr, ".")
 	pkgName := s[0]
-	newFunName = fmt.Sprintf("gen_%s.%s", pkgName, newFunName)
+	newFunName = fmt.Sprintf("gen%s.%s", pkgName, newFunName)
 	_, args, _ := translator.ExtractParamsTypeAndName(ret.Args)
 
-	originStr := file_operations.GenerateCallExpr(callFunExpr, args, false, translator.GetAssertType())
-	targetStr := file_operations.GenerateCallExpr(newFunName, args, true, translator.GetAssertType())
+	originStr := fileoperations.GenerateCallExpr(callFunExpr, args, false, translator.GetAssertType())
+	targetStr := fileoperations.GenerateCallExpr(newFunName, args, true, translator.GetAssertType())
 
 	filePath = fmt.Sprintf("./%s", filePath)
 	if !isDir {
-		file_operations.ReplaceOriginFuncByFile(filePath, originStr, targetStr)
+		fileoperations.ReplaceOriginFuncByFile(filePath, originStr, targetStr)
 	} else {
-		file_operations.ReplaceOriginFuncByDir(filePath, originStr, targetStr)
+		fileoperations.ReplaceOriginFuncByDir(filePath, originStr, targetStr)
 	}
 }
 
 // TODO: The dir "./utils/enum/" must exist or will cause panic
 func genTargetFuncImplement(ret *ast.CallExpr, callFunExpr, funDeclStr string) (bool, string) {
-	var funcExists = false
-	var previousFuncName = ""
 	s := strings.Split(callFunExpr, ".")
 	pkgName := s[0]
 	funName := s[1]
@@ -45,14 +43,17 @@ func genTargetFuncImplement(ret *ast.CallExpr, callFunExpr, funDeclStr string) (
 	filePath := fmt.Sprintf("%s/%s", genFilePath, genFileName)
 
 	_, _, listOfArgTypes := translator.ExtractParamsTypeAndName(ret.Args)
-	funcExists, previousFuncName = file_operations.CheckFuncExists(filePath, listOfArgTypes)
+	funcExists, previousFuncName := fileoperations.CheckFuncExists(filePath, listOfArgTypes)
 	if funcExists {
 		return funcExists, previousFuncName
-	} else {
-		tmpStr := fmt.Sprintf("\n%s", funDeclStr)
-		buffer := []byte(tmpStr)
-		pkgStatement := fmt.Sprintf("package gen_%s", pkgName)
-		file_operations.WriteFuncToFile(filePath, pkgStatement, buffer)
+	}
+
+	tmpStr := fmt.Sprintf("\n%s", funDeclStr)
+	buffer := []byte(tmpStr)
+	pkgStatement := fmt.Sprintf("package gen%s", pkgName)
+	err := fileoperations.WriteFuncToFile(filePath, pkgStatement, buffer)
+	if err != nil {
+		panic(err)
 	}
 
 	return funcExists, previousFuncName
