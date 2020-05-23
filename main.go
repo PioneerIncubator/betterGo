@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/YongHaoWu/betterGo/fileoperations"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/YongHaoWu/betterGo/fileoperations"
 
 	"github.com/YongHaoWu/betterGo/translator"
 	"github.com/urfave/cli/v2"
@@ -132,9 +133,9 @@ func loopASTNode(fset *token.FileSet, node *ast.File, filePath string, isDir boo
 					ret.Fun = x
 				}
 				cr.Replace(ret)
-				 if err := format.Node(os.Stdout, token.NewFileSet(), n); err != nil {
-				 	log.Fatalln("Error:", err)
-				 }
+				if err := format.Node(os.Stdout, token.NewFileSet(), n); err != nil {
+					log.Fatalln("Error:", err)
+				}
 				*/
 				fmt.Println("end=-=================================")
 				return true
