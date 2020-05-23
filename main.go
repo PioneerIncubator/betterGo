@@ -21,8 +21,8 @@ func replaceOriginFunc(ret *ast.CallExpr, callFunExpr, newFunName, filePath stri
 	newFunName = fmt.Sprintf("gen%s.%s", pkgName, newFunName)
 	_, args, _ := translator.ExtractParamsTypeAndName(ret.Args)
 
-	originStr := fileoperations.GenerateCallExpr(callFunExpr, args, false, translator.GetAssertType())
-	targetStr := fileoperations.GenerateCallExpr(newFunName, args, true, translator.GetAssertType())
+	originStr := fileoperations.GenCallExpr(callFunExpr, translator.GetAssertType(), args, false)
+	targetStr := fileoperations.GenCallExpr(newFunName, translator.GetAssertType(), args, true)
 
 	filePath = fmt.Sprintf("./%s", filePath)
 	if !isDir {
@@ -45,18 +45,17 @@ func genTargetFuncImplement(ret *ast.CallExpr, callFunExpr, funDeclStr string) (
 	_, _, listOfArgTypes := translator.ExtractParamsTypeAndName(ret.Args)
 	funcExists, previousFuncName := fileoperations.CheckFuncExists(filePath, listOfArgTypes)
 	if funcExists {
-		return funcExists, previousFuncName
+		return true, previousFuncName
 	}
 
-	tmpStr := fmt.Sprintf("\n%s", funDeclStr)
-	buffer := []byte(tmpStr)
+	buffer := []byte(fmt.Sprintf("\n%s", funDeclStr))
 	pkgStatement := fmt.Sprintf("package gen%s", pkgName)
 	err := fileoperations.WriteFuncToFile(filePath, pkgStatement, buffer)
 	if err != nil {
 		panic(err)
 	}
 
-	return funcExists, previousFuncName
+	return false, previousFuncName
 }
 
 // func isFunction() {

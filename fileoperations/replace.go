@@ -11,31 +11,31 @@ import (
 )
 
 // Generate function calling statement by funName and arguments
-func GenerateCallExpr(funName string, args []string, isNew bool, assertType string) string {
-	lenOfArgs := len(args)
-	if isNew {
-		funName += "("
-	} else {
-		funName += "\\("
-	}
-	for index, arg := range args {
-		funName += arg
-		if index != lenOfArgs-1 {
-			funName += ", "
+func GenCallExpr(funName, assertType string, listOfArgs []string, isNew bool) string {
+	callExpr := funName
+	numOfArgs := len(listOfArgs)
+
+	callExpr += "("
+	for index, arg := range listOfArgs {
+		callExpr += arg
+		if index != numOfArgs-1 {
+			callExpr += ", "
 		}
 	}
-	if isNew {
-		funName += ")"
-	} else {
-		funName += "\\)"
-		lenOfAssert := len(assertType)
-		if lenOfAssert != 0 {
-			funName += "\\.\\("
-			funName += assertType
-			funName += "\\)"
+
+	callExpr += ")"
+	if !isNew {
+		if len(assertType) != 0 {
+			callExpr += ".("
+			callExpr += assertType
+			callExpr += ")"
 		}
 	}
-	return funName
+
+	if !isNew {
+		callExpr = regexp.QuoteMeta(callExpr)
+	}
+	return callExpr
 }
 
 func ReplaceOriginFuncByFile(file, origin, target string) {
