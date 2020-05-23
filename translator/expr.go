@@ -16,7 +16,7 @@ func ExtractParamsTypeAndName(listOfArgs []ast.Expr) (string, []string, []string
 	var listOfArgTypes []string
 	argname := "argname"
 	argsNum := len(listOfArgs)
-	for index, arg := range listOfArgs {
+	for i, arg := range listOfArgs {
 		argname = utils.IncrementString(argname, "", 1)
 		switch x := arg.(type) {
 		case *ast.BasicLit:
@@ -32,10 +32,16 @@ func ExtractParamsTypeAndName(listOfArgs []ast.Expr) (string, []string, []string
 			listOfArgVarNames = append(listOfArgVarNames, argVarName)
 			listOfArgTypes = append(listOfArgTypes, variableType[argVarName])
 			fmt.Println("argVarName is ", argVarName)
-			fmt.Println("argVarType is ", variableType[argVarName])
-			paramsType = fmt.Sprintf("%s %s %s", paramsType, argname, variableType[argVarName])
+			var argVarType string
+			if paramType, ok := variableType[DecorateParamName(argVarName)]; ok {
+				argVarType = paramType
+			} else {
+				argVarType = variableType[argVarName]
+			}
+			fmt.Println("argVarType is ", argVarType)
+			paramsType = fmt.Sprintf("%s %s %s", paramsType, argname, argVarType)
 
-			if index != argsNum-1 {
+			if i != argsNum-1 {
 				paramsType += ","
 			}
 		}

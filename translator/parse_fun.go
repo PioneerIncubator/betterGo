@@ -44,9 +44,26 @@ func getFunRetListRawStr(fset *token.FileSet, ret *ast.FuncDecl) string {
 	return retStr
 }
 
+func DecorateParamName(name string) string {
+	return "BETTERGOPARAM" + name
+}
+
+func recordParamType(fset *token.FileSet, ret *ast.FuncType) {
+	for _, v := range ret.Params.List {
+		exprType := GetExprStr(fset, v.Type)
+		for _, name := range v.Names {
+			nameStr := GetExprStr(fset, name)
+			fmt.Printf("[recordParamType] param name %s record as %s, value %s\n", nameStr, DecorateParamName(nameStr), exprType)
+			variableType[DecorateParamName(nameStr)] = exprType
+		}
+	}
+
+}
+
 func GetFuncType(fset *token.FileSet, ret *ast.FuncDecl) (string, string) {
 	paramsStr := getFunParamListRawStr(fset, ret)
 	retStr := getFunRetListRawStr(fset, ret)
+	recordParamType(fset, ret.Type)
 
 	fmt.Println("[GetFuncType] record ", ret.Name.Name, " func origin type is ", paramsStr+retStr)
 	variableType[ret.Name.Name] = paramsStr + retStr
