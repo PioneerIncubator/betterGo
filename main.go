@@ -73,35 +73,25 @@ func loopASTNode(fset *token.FileSet, node *ast.File, filePath string, isDir boo
 		}
 		astutil.Apply(fn, func(cr *astutil.Cursor) bool {
 			n := cr.Node()
-			if ret, ok := n.(*ast.GenDecl); ok {
+			switch ret := n.(type) {
+			case *ast.GenDecl:
 				fmt.Println("[GenDecl] is ", ret)
-			}
-
-			if ret, ok := n.(*ast.AssignStmt); ok {
-				if ret.Tok == token.DEFINE {
-					// a := 12
+			case *ast.AssignStmt:
+				if ret.Tok == token.DEFINE { // a := 12
 					translator.RecordDefineVarType(fset, ret)
 				}
-			}
-
-			if ret, ok := n.(*ast.FuncDecl); ok {
+			case *ast.FuncDecl:
 				if ret.Name.Name != "main" {
 					fmt.Println("find function declar  ", ret.Name.Name)
 					translator.GetFuncType(fset, ret)
 				}
-			}
-
-			if ret, ok := n.(*ast.TypeAssertExpr); ok {
+			case *ast.TypeAssertExpr:
 				//TODO: expr lik out := enum.Reduce(a, mul, 1).(int)
 				// Assert is parse before function call
 				// which means we 'll parse (int) then enum.Reduce
 				assertType := translator.GetExprStr(fset, ret.Type)
 				translator.RecordAssertType(assertType)
-				return true
-			}
-
-			// call expr, find enum functions
-			if ret, ok := n.(*ast.CallExpr); ok {
+			case *ast.CallExpr:
 				funName := translator.GetExprStr(fset, ret.Fun)
 				// fmt.Println("[CallExpr] funName", funName)
 				if strings.Contains(funName, "enum") {
@@ -119,30 +109,9 @@ func loopASTNode(fset *token.FileSet, node *ast.File, filePath string, isDir boo
 						replaceOriginFunc(ret, funName, newFunName, filePath, isDir)
 					}
 				}
-
-				// try rewrite the reduce function call
-				/*TODO: useless
-				switch x := ret.Fun.(type) {
-				case *ast.Ident:
-					x.Name = "targetpkg." + newFunName
-					ret.Fun = x
-				case *ast.SelectorExpr:
-					x.X.(*ast.Ident).Name = "targetpkg"
-					x.Sel.Name = newFunName
-					fmt.Println("my..................", x.Sel.Name)
-					ret.Fun = x
-				}
-				cr.Replace(ret)
-				if err := format.Node(os.Stdout, token.NewFileSet(), n); err != nil {
-					log.Fatalln("Error:", err)
-				}
-				*/
-				fmt.Println("end=-=================================")
-				return true
 			}
 			return true
 		}, nil)
-
 	}
 }
 
