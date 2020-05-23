@@ -10,8 +10,10 @@ import (
 	"github.com/YongHaoWu/betterGo/utils"
 )
 
-func extractParamsTypeAndName(listOfArgs []ast.Expr) string {
+func ExtractParamsTypeAndName(listOfArgs []ast.Expr) (string, []string, []string) {
 	var paramsType string
+	var listOfArgVarNames []string
+	var listOfArgTypes []string
 	argname := "argname"
 	argsNum := len(listOfArgs)
 	for index, arg := range listOfArgs {
@@ -20,10 +22,15 @@ func extractParamsTypeAndName(listOfArgs []ast.Expr) string {
 		case *ast.BasicLit:
 			switch x.Kind {
 			case token.INT:
+				argVarName := x.Value
+				listOfArgVarNames = append(listOfArgVarNames, argVarName)
+				listOfArgTypes = append(listOfArgTypes, "int")
 				paramsType = fmt.Sprintf("%s %s int", paramsType, argname)
 			}
 		case *ast.Ident:
 			argVarName := x.Name
+			listOfArgVarNames = append(listOfArgVarNames, argVarName)
+			listOfArgTypes = append(listOfArgTypes, variableType[argVarName])
 			fmt.Println("argVarName is ", argVarName)
 			fmt.Println("argVarType is ", variableType[argVarName])
 			paramsType = fmt.Sprintf("%s %s %s", paramsType, argname, variableType[argVarName])
@@ -33,7 +40,8 @@ func extractParamsTypeAndName(listOfArgs []ast.Expr) string {
 			}
 		}
 	}
-	return paramsType
+	listOfArgTypes = append(listOfArgTypes, assertType)
+	return paramsType, listOfArgVarNames, listOfArgTypes
 }
 
 func GetExprStr(fset *token.FileSet, expr interface{}) string {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/YongHaoWu/betterGo/fileoperations"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -14,18 +15,54 @@ import (
 	"golang.org/x/tools/go/ast/astutil"
 )
 
-// func replaceOriginFunc() {
-// }
+func replaceOriginFunc(ret *ast.CallExpr, callFunExpr, newFunName, filePath string, isDir bool) {
+	s := strings.Split(callFunExpr, ".")
+	pkgName := s[0]
+	newFunName = fmt.Sprintf("gen%s.%s", pkgName, newFunName)
+	_, args, _ := translator.ExtractParamsTypeAndName(ret.Args)
 
-// func genTargetFuncImplement() {
+	originStr := fileoperations.GenCallExpr(callFunExpr, translator.GetAssertType(), args, false)
+	targetStr := fileoperations.GenCallExpr(newFunName, translator.GetAssertType(), args, true)
 
-// }
+	filePath = fmt.Sprintf("./%s", filePath)
+	if !isDir {
+		fileoperations.ReplaceOriginFuncByFile(filePath, originStr, targetStr)
+	} else {
+		fileoperations.ReplaceOriginFuncByDir(filePath, originStr, targetStr)
+	}
+}
+
+// TODO: The dir "./utils/enum/" must exist or will cause panic
+func genTargetFuncImplement(ret *ast.CallExpr, callFunExpr, funDeclStr string) (bool, string) {
+	s := strings.Split(callFunExpr, ".")
+	pkgName := s[0]
+	funName := s[1]
+	genFilePath := fmt.Sprintf("./utils/%s", pkgName)
+	genFileName := fmt.Sprintf("%s.go", funName)
+	genFileName = strings.ToLower(genFileName)
+	filePath := fmt.Sprintf("%s/%s", genFilePath, genFileName)
+
+	_, _, listOfArgTypes := translator.ExtractParamsTypeAndName(ret.Args)
+	funcExists, previousFuncName := fileoperations.CheckFuncExists(filePath, listOfArgTypes)
+	if funcExists {
+		return true, previousFuncName
+	}
+
+	buffer := []byte(fmt.Sprintf("\n%s", funDeclStr))
+	pkgStatement := fmt.Sprintf("package gen%s", pkgName)
+	err := fileoperations.WriteFuncToFile(filePath, pkgStatement, buffer)
+	if err != nil {
+		panic(err)
+	}
+
+	return false, previousFuncName
+}
 
 // func isFunction() {
 
 // }
 
-func loopASTNode(fset *token.FileSet, node *ast.File) {
+func loopASTNode(fset *token.FileSet, node *ast.File, filePath string, isDir bool) {
 	for _, f := range node.Decls {
 		// fmt.Println("loop node.Decls")
 		// find a function declaration.
@@ -70,6 +107,16 @@ func loopASTNode(fset *token.FileSet, node *ast.File) {
 					newFunName, funDeclStr := translator.GenEnumFunctionDecl(funName, ret.Args)
 					fmt.Println("[CallExpr] newfunName", newFunName)
 					fmt.Println("gen funDeclStr:  ", funDeclStr)
+
+					// Generate function to file
+					funcExists, prevFuncName := genTargetFuncImplement(ret, funName, funDeclStr)
+
+					// Replace origin function call expression
+					if funcExists {
+						replaceOriginFunc(ret, funName, prevFuncName, filePath, isDir)
+					} else {
+						replaceOriginFunc(ret, funName, newFunName, filePath, isDir)
+					}
 				}
 
 				// try rewrite the reduce function call
@@ -99,15 +146,17 @@ func loopASTNode(fset *token.FileSet, node *ast.File) {
 }
 
 func loopASTFile(filePath string) {
+	isDir := false
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
 		log.Fatal(err)
 	}
-	loopASTNode(fset, node)
+	loopASTNode(fset, node, filePath, isDir)
 }
 
 func loopASTDir(filePath string) {
+	isDir := true
 	fset := token.NewFileSet()
 	pkgs, err := parser.ParseDir(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
@@ -118,7 +167,7 @@ func loopASTDir(filePath string) {
 		fmt.Println("pkg k is ", k)
 		for filename, fileNode := range v.Files {
 			fmt.Println("filename  is ", filename)
-			loopASTNode(fset, fileNode)
+			loopASTNode(fset, fileNode, filePath, isDir)
 		}
 	}
 
