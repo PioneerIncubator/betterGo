@@ -46,7 +46,9 @@ func matchFunc(filePath, origin string) (bool, string) {
 	}
 	defer func() {
 		err := f.Close()
-		panic(err)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}()
 
 	reader := bufio.NewReader(f)
@@ -102,7 +104,9 @@ func WriteFuncToFile(filePath, packageName string, input []byte) error {
 	f, exist, err := ensureFileExists(filePath)
 	defer func() {
 		err := f.Close()
-		panic(err)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}()
 	if err != nil {
 		panic(err)
