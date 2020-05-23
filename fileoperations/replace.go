@@ -93,7 +93,9 @@ func readFile(filePath, origin, target string) ([]byte, bool, error) {
 	}
 	defer func() {
 		err := f.Close()
-		panic(err)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}()
 	reader := bufio.NewReader(f)
 	needHandle := false
@@ -131,7 +133,9 @@ func writeCallExprToFile(filePath string, input []byte) error {
 	}
 	defer func() {
 		err := f.Close()
-		panic(err)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}()
 	writer := bufio.NewWriter(f)
 	_, err = writer.Write(input)
