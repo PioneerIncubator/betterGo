@@ -31,9 +31,7 @@ func CheckFuncExists(filePath string, listOfArgTypes []string) (bool, string) {
 	for ; i < length-2; i++ {
 		target = fmt.Sprintf("%s argname_%d %s,", target, i+1, listOfArgTypes[i])
 	}
-	target = fmt.Sprintf("%s\\) %s",
-		fmt.Sprintf("%s argname_%d %s", target, i+1, listOfArgTypes[i]),
-		listOfArgTypes[length-1])
+	target = fmt.Sprintf("%s argname_%d %s\\) %s", target, i+1, listOfArgTypes[i], listOfArgTypes[length-1])
 
 	fmt.Printf("Finding %s in %s...\n", target, filePath)
 	funcExists, funcName := matchFunc(filePath, target)
@@ -46,7 +44,10 @@ func matchFunc(filePath, origin string) (bool, string) {
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
+	defer func() {
+		err := f.Close()
+		panic(err)
+	}()
 
 	reader := bufio.NewReader(f)
 	for {
@@ -99,7 +100,10 @@ func ensureFileExists(filePath string) (*os.File, bool, error) {
 
 func WriteFuncToFile(filePath, packageName string, input []byte) error {
 	f, exist, err := ensureFileExists(filePath)
-	defer f.Close()
+	defer func() {
+		err := f.Close()
+		panic(err)
+	}()
 	if err != nil {
 		panic(err)
 	}

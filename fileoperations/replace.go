@@ -26,15 +26,11 @@ func GenCallExpr(funName, assertType string, listOfArgs []string, isNew bool) st
 	callExpr += ")"
 	if !isNew {
 		if len(assertType) != 0 {
-			callExpr += ".("
-			callExpr += assertType
-			callExpr += ")"
+			callExpr = fmt.Sprintf("%s.(%s)", callExpr, assertType)
 		}
-	}
-
-	if !isNew {
 		callExpr = regexp.QuoteMeta(callExpr)
 	}
+
 	return callExpr
 }
 
@@ -95,7 +91,10 @@ func readFile(filePath, origin, target string) ([]byte, bool, error) {
 	if err != nil {
 		return nil, false, err
 	}
-	defer f.Close()
+	defer func() {
+		err := f.Close()
+		panic(err)
+	}()
 	reader := bufio.NewReader(f)
 	needHandle := false
 	output := make([]byte, 0)
@@ -130,13 +129,19 @@ func writeCallExprToFile(filePath string, input []byte) error {
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
+	defer func() {
+		err := f.Close()
+		panic(err)
+	}()
 	writer := bufio.NewWriter(f)
 	_, err = writer.Write(input)
 	if err != nil {
 		return err
 	}
-	writer.Flush()
+	err = writer.Flush()
+	if err != nil {
+		panic(err)
+	}
 	return nil
 }
 
