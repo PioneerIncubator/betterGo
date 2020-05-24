@@ -83,14 +83,14 @@ func getFuncNameFromLine(line []byte) string {
 	return funcName
 }
 
-func ensureDirExists(filePath string) {
+func ensureDirExists(filePath string) error {
 	s := strings.Split(filePath, "/")
 	s = s[0 : len(s)-1]
 	dirPath := strings.Join(s, "/")
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-		err2 := os.Mkdir(dirPath, os.ModeDir)
-		if err2 != nil {
-			fmt.Println(err2)
+		err = os.Mkdir(dirPath, os.ModeDir)
+		if err != nil {
+			return err
 		}
 	}
 }
@@ -99,7 +99,9 @@ func ensureFileExists(filePath string) (*os.File, bool, error) {
 	var f *os.File
 	var err error
 	exist := false
-	ensureDirExists(filePath)
+	if err = ensureDirExists(filePath); err != nil {
+		fmt.Println(err)
+	}
 	if checkFileExists(filePath) {
 		exist = true
 		f, err = os.OpenFile(filePath, os.O_APPEND, 0666)
