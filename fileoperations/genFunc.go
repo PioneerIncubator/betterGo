@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"strings"
 )
 
 func checkFileExists(filePath string) bool {
@@ -82,10 +83,23 @@ func getFuncNameFromLine(line []byte) string {
 	return funcName
 }
 
+func ensureDirExists(filePath string) {
+	s := strings.Split(filePath, "/")
+	s = s[0 : len(s)-1]
+	dirPath := strings.Join(s, "/")
+	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
+		err2 := os.Mkdir(dirPath, os.ModeDir)
+		if err2 != nil {
+			fmt.Println(err2)
+		}
+	}
+}
+
 func ensureFileExists(filePath string) (*os.File, bool, error) {
 	var f *os.File
 	var err error
-	var exist = false
+	exist := false
+	ensureDirExists(filePath)
 	if checkFileExists(filePath) {
 		exist = true
 		f, err = os.OpenFile(filePath, os.O_APPEND, 0666)
