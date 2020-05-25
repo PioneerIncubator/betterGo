@@ -51,8 +51,8 @@ func ReplaceOriginFuncByFile(file, origin, target string) {
 		gopath := fmt.Sprintf("%s/src/", os.Getenv("GOPATH")) // get env "GOPATH", like "/Users/.../src/"
 		pkgName := strings.Split(origin, ".")[0]              // get package name, like "enum"
 		oldPath := strings.Replace(dir, gopath, "", -1)       // oldPath == dir - gopath, like ".../test"
-		oldImport := fmt.Sprintf("github.com/YongHaoWu/betterGo/%s", pkgName)
-		newImport := fmt.Sprintf("%s/utils/%s", oldPath, pkgName)
+		oldImport := fmt.Sprintf("\"github.com/YongHaoWu/betterGo/%s\"", pkgName)
+		newImport := fmt.Sprintf("%s \"%s/utils/%s\"", pkgName, oldPath, pkgName)
 		replaceOriginImport(file, oldImport, newImport)
 
 	} else {
@@ -70,6 +70,7 @@ func ReplaceOriginFuncByDir(path, origin, target string) {
 }
 
 func replaceOriginImport(file, origin, target string) {
+	origin = regexp.QuoteMeta(origin)
 	output, needHandle, err := readFile(file, origin, target)
 	if err != nil {
 		panic(err)

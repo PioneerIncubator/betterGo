@@ -19,7 +19,7 @@ import (
 func replaceOriginFunc(ret *ast.CallExpr, callFunExpr, newFunName, filePath string, isDir bool) {
 	s := strings.Split(callFunExpr, ".")
 	pkgName := s[0]
-	newFunName = fmt.Sprintf("gen%s.%s", pkgName, newFunName)
+	newFunName = fmt.Sprintf("%s.%s", pkgName, newFunName)
 	_, args, _ := translator.ExtractParamsTypeAndName(ret.Args)
 
 	originStr := fileoperations.GenCallExpr(callFunExpr, translator.GetAssertType(), args, false)
@@ -50,7 +50,7 @@ func genTargetFuncImplement(ret *ast.CallExpr, callFunExpr, funDeclStr string) (
 	}
 
 	buffer := []byte(fmt.Sprintf("\n%s", funDeclStr))
-	pkgStatement := fmt.Sprintf("package gen%s", pkgName)
+	pkgStatement := fmt.Sprintf("package %s", pkgName)
 	err := fileoperations.WriteFuncToFile(filePath, pkgStatement, buffer)
 	if err != nil {
 		panic(err)
