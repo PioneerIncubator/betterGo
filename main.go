@@ -33,7 +33,6 @@ func replaceOriginFunc(ret *ast.CallExpr, callFunExpr, newFunName, filePath stri
 	}
 }
 
-// TODO: The dir "./utils/enum/" must exist or will cause panic
 func genTargetFuncImplement(ret *ast.CallExpr, callFunExpr, funDeclStr string) (bool, string) {
 	s := strings.Split(callFunExpr, ".")
 	pkgName := s[0]
@@ -63,7 +62,7 @@ func genTargetFuncImplement(ret *ast.CallExpr, callFunExpr, funDeclStr string) (
 
 // }
 
-func loopASTNode(fset *token.FileSet, node *ast.File, filePath string, isDir bool) {
+func loopASTNode(fset *token.FileSet, node *ast.File, filePath string, isDir, rewriteAndGen bool) {
 	for _, f := range node.Decls {
 		// fmt.Println("loop node.Decls")
 		// find a function declaration.
@@ -99,14 +98,16 @@ func loopASTNode(fset *token.FileSet, node *ast.File, filePath string, isDir boo
 					fmt.Println("[CallExpr] newfunName", newFunName)
 					fmt.Println("gen funDeclStr:  ", funDeclStr)
 
-					// Generate function to file
-					funcExists, prevFuncName := genTargetFuncImplement(ret, funName, funDeclStr)
+					if rewriteAndGen {
+						// Generate function to file
+						funcExists, prevFuncName := genTargetFuncImplement(ret, funName, funDeclStr)
 
-					// Replace origin function call expression
-					if funcExists {
-						replaceOriginFunc(ret, funName, prevFuncName, filePath, isDir)
-					} else {
-						replaceOriginFunc(ret, funName, newFunName, filePath, isDir)
+						// Replace origin function call expression
+						if funcExists {
+							replaceOriginFunc(ret, funName, prevFuncName, filePath, isDir)
+						} else {
+							replaceOriginFunc(ret, funName, newFunName, filePath, isDir)
+						}
 					}
 				}
 			}
@@ -115,18 +116,16 @@ func loopASTNode(fset *token.FileSet, node *ast.File, filePath string, isDir boo
 	}
 }
 
-func loopASTFile(filePath string) {
-	isDir := false
+func loopASTFile(filePath string, rewriteAndGen bool) {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
 		log.Fatal(err)
 	}
-	loopASTNode(fset, node, filePath, isDir)
+	loopASTNode(fset, node, filePath, false, rewriteAndGen)
 }
 
-func loopASTDir(filePath string) {
-	isDir := true
+func loopASTDir(filePath string, rewriteAndGen bool) {
 	fset := token.NewFileSet()
 	pkgs, err := parser.ParseDir(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
@@ -137,7 +136,7 @@ func loopASTDir(filePath string) {
 		fmt.Println("pkg k is ", k)
 		for filename, fileNode := range v.Files {
 			fmt.Println("filename  is ", filename)
-			loopASTNode(fset, fileNode, filePath, isDir)
+			loopASTNode(fset, fileNode, filePath, true, rewriteAndGen)
 		}
 	}
 
@@ -156,14 +155,21 @@ func main() {
 				Aliases: []string{"d"},
 				Usage:   "Generate and replace the dirctory with Enum files",
 			},
+			&cli.BoolFlag{
+				Name:    "rewrite&gen",
+				Aliases: []string{"w"},
+				Value:   false,
+				Usage:   "Rewrite files and generate files",
+			},
 		},
 		Action: func(c *cli.Context) error {
+			rewriteAndGen := c.Bool("rewrite&gen")
 			if c.String("file") != "" {
-				loopASTFile(c.String("file"))
+				loopASTFile(c.String("file"), rewriteAndGen)
 				return nil
 			}
 			if c.String("dir") != "" {
-				loopASTDir(c.String("dir"))
+				loopASTDir(c.String("dir"), rewriteAndGen)
 				return nil
 			}
 
