@@ -27,13 +27,21 @@ func CheckFuncExists(filePath string, listOfArgTypes []string) (bool, string) {
 		listOfArgTypes[j] = regexp.QuoteMeta(str)
 	}
 
-	target := ""
-	length := len(listOfArgTypes)
-	i := 0
-	for ; i < length-2; i++ {
-		target = fmt.Sprintf("%s argname_%d %s,", target, i+1, listOfArgTypes[i])
+	var target string
+	switch length := len(listOfArgTypes); length {
+	case 0:
+		panic("Error:There is no argument in listOfArgTypes")
+	case 1:
+		target = fmt.Sprintf("argname_%d %s", 1, listOfArgTypes[0])
+	default:
+		target = fmt.Sprintf("argname_%d %s,", 1, listOfArgTypes[0])
+		i := 1
+		for ; i < length-2; i++ {
+			target = fmt.Sprintf("%s argname_%d %s,", target, i+1, listOfArgTypes[i])
+		}
+		target = fmt.Sprintf("%s argname_%d %s) %s", target, i+1, listOfArgTypes[i], listOfArgTypes[length-1])
 	}
-	target = fmt.Sprintf("%s argname_%d %s\\) %s", target, i+1, listOfArgTypes[i], listOfArgTypes[length-1])
+	target = regexp.QuoteMeta(target)
 
 	fmt.Printf("Finding %s in %s...\n", target, filePath)
 	funcExists, funcName := matchFunc(filePath, target)
@@ -145,6 +153,9 @@ func WriteFuncToFile(filePath, packageName string, input []byte) error {
 	if _, err = writer.Write(input); err != nil {
 		return err
 	}
-	writer.Flush()
+	err = writer.Flush()
+	if err != nil {
+		return err
+	}
 	return nil
 }

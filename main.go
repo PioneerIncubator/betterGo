@@ -48,7 +48,7 @@ func genTargetFuncImplement(ret *ast.CallExpr, callFunExpr, funDeclStr string) (
 		return true, previousFuncName
 	}
 
-	buffer := []byte(fmt.Sprintf("\n\n%s", funDeclStr))
+	buffer := []byte(fmt.Sprintf("\n%s", funDeclStr))
 	pkgStatement := fmt.Sprintf("package %s", pkgName)
 	err := fileoperations.WriteFuncToFile(filePath, pkgStatement, buffer)
 	if err != nil {
