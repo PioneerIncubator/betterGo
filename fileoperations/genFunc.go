@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"go/format"
 	"io"
 	"os"
 	"regexp"
@@ -118,6 +119,11 @@ func ensureFileExists(filePath string) (*os.File, bool, error) {
 }
 
 func WriteFuncToFile(filePath, packageName string, input []byte) error {
+	var err error
+	input, err = format.Source(input)
+	if err != nil {
+		fmt.Println(err)
+	}
 	f, exist, err := ensureFileExists(filePath)
 	defer func() {
 		err := f.Close()
