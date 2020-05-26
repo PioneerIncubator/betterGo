@@ -93,6 +93,7 @@ func ensureDirExists(filePath string) error {
 			return err
 		}
 	}
+	return nil
 }
 
 func ensureFileExists(filePath string) (*os.File, bool, error) {
