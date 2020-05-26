@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"go/format"
 	"io"
 	"os"
 	"regexp"
@@ -26,13 +27,27 @@ func CheckFuncExists(filePath string, listOfArgTypes []string) (bool, string) {
 		listOfArgTypes[j] = regexp.QuoteMeta(str)
 	}
 
-	target := ""
-	length := len(listOfArgTypes)
-	i := 0
-	for ; i < length-2; i++ {
-		target = fmt.Sprintf("%s argname_%d %s,", target, i+1, listOfArgTypes[i])
+	// Generate `target`, which will be used to match the function name in `filepath`
+	// It will be like `argname_1 int, argname_2 int\)`
+	var target string
+	switch length := len(listOfArgTypes); length {
+	case 0:
+		panic("Error:There is no argument in listOfArgTypes")
+	case 1:
+		// There is no comma behind %s because there just have only one arg
+		target = fmt.Sprintf("argname_%d %s", 1, listOfArgTypes[0])
+	default:
+		// There is a comma behind %s because it's not the last arg
+		target = fmt.Sprintf("argname_%d %s,", 1, listOfArgTypes[0])
+		i := 1
+		for ; i < length-2; i++ {
+			// There is a comma behind %s because it's not the last arg
+			target = fmt.Sprintf("%s argname_%d %s,", target, i+1, listOfArgTypes[i])
+		}
+		// There is no comma behind %s because it's the last arg
+		target = fmt.Sprintf("%s argname_%d %s) %s", target, i+1, listOfArgTypes[i], listOfArgTypes[length-1])
 	}
-	target = fmt.Sprintf("%s argname_%d %s\\) %s", target, i+1, listOfArgTypes[i], listOfArgTypes[length-1])
+	target = regexp.QuoteMeta(target)
 
 	fmt.Printf("Finding %s in %s...\n", target, filePath)
 	funcExists, funcName := matchFunc(filePath, target)
@@ -93,6 +108,7 @@ func ensureDirExists(filePath string) error {
 			return err
 		}
 	}
+	return nil
 }
 
 func ensureFileExists(filePath string) (*os.File, bool, error) {
@@ -117,6 +133,11 @@ func ensureFileExists(filePath string) (*os.File, bool, error) {
 }
 
 func WriteFuncToFile(filePath, packageName string, input []byte) error {
+	var err error
+	input, err = format.Source(input)
+	if err != nil {
+		fmt.Println(err)
+	}
 	f, exist, err := ensureFileExists(filePath)
 	defer func() {
 		err := f.Close()
@@ -138,6 +159,9 @@ func WriteFuncToFile(filePath, packageName string, input []byte) error {
 	if _, err = writer.Write(input); err != nil {
 		return err
 	}
-	writer.Flush()
+	err = writer.Flush()
+	if err != nil {
+		return err
+	}
 	return nil
 }
