@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/YongHaoWu/betterGo/enum"
+	"github.com/PioneerIncubator/betterGo/enum"
 )
 
 func useAdd() {

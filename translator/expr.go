@@ -7,7 +7,7 @@ import (
 	"go/printer"
 	"go/token"
 
-	"github.com/YongHaoWu/betterGo/utils"
+	"github.com/PioneerIncubator/betterGo/utils"
 )
 
 func ExtractParamsTypeAndName(listOfArgs []ast.Expr) (string, []string, []string) {

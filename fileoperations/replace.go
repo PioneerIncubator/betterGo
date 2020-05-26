@@ -52,7 +52,7 @@ func ReplaceOriginFuncByFile(file, origin, target string) {
 		pkgName := strings.Split(origin, ".")[0]              // get package name, like "enum"
 		pkgName = strings.TrimRight(pkgName, "\\")
 		oldPath := strings.Replace(dir, gopath, "", -1) // oldPath == dir - gopath, like ".../test"
-		oldImport := fmt.Sprintf("\"github.com/YongHaoWu/betterGo/%s\"", pkgName)
+		oldImport := fmt.Sprintf("\"github.com/PioneerIncubator/betterGo/%s\"", pkgName)
 		newImport := fmt.Sprintf("%s \"%s/utils/%s\"", pkgName, oldPath, pkgName)
 		replaceOriginImport(file, oldImport, newImport)
 

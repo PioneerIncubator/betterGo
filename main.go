@@ -9,9 +9,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/YongHaoWu/betterGo/fileoperations"
+	"github.com/PioneerIncubator/betterGo/fileoperations"
 
-	"github.com/YongHaoWu/betterGo/translator"
+	"github.com/PioneerIncubator/betterGo/translator"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/tools/go/ast/astutil"
 )
