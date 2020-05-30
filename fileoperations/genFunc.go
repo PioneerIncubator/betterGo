@@ -56,7 +56,7 @@ func CheckFuncExists(filePath string, listOfArgTypes []string) (bool, string) {
 }
 
 func matchFunc(filePath, origin string) (bool, string) {
-	f, err := os.OpenFile(filePath, os.O_RDONLY, 0644)
+	f, err := os.OpenFile(filePath, os.O_RDWR, 0666)
 	if err != nil {
 		panic(err)
 	}
@@ -103,7 +103,7 @@ func ensureDirExists(filePath string) error {
 	s = s[0 : len(s)-1]
 	dirPath := strings.Join(s, "/")
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-		err = os.Mkdir(dirPath, os.ModeDir)
+		err = os.Mkdir(dirPath, 0777)
 		if err != nil {
 			return err
 		}
@@ -120,7 +120,7 @@ func ensureFileExists(filePath string) (*os.File, bool, error) {
 	}
 	if checkFileExists(filePath) {
 		exist = true
-		f, err = os.OpenFile(filePath, os.O_APPEND, 0666)
+		f, err = os.OpenFile(filePath, os.O_APPEND|os.O_RDWR, 0666)
 	} else {
 		f, err = os.Create(filePath)
 	}
