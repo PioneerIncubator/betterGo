@@ -75,9 +75,12 @@ func loopASTNode(fset *token.FileSet, node *ast.File, filePath string, isDir, re
 			switch ret := n.(type) {
 			case *ast.GenDecl:
 				fmt.Println("[GenDecl] is ", ret)
+			case *ast.ValueSpec:
+				fmt.Println("[ValueSpec] is ", ret)
+				translator.RecordDeclVarType(fset, ret)
 			case *ast.AssignStmt:
 				if ret.Tok == token.DEFINE { // a := 12
-					translator.RecordDefineVarType(fset, ret)
+					translator.RecordAssignVarType(fset, ret)
 				}
 			case *ast.FuncDecl:
 				if ret.Name.Name != "main" {

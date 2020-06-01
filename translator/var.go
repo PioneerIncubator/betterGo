@@ -22,7 +22,7 @@ func GetAssertType() string {
 	return assertType
 }
 
-func RecordDefineVarType(fset *token.FileSet, ret *ast.AssignStmt) {
+func RecordAssignVarType(fset *token.FileSet, ret *ast.AssignStmt) {
 	fmt.Println("---------------------")
 	if len(ret.Lhs) == len(ret.Rhs) {
 		for i, l := range ret.Lhs {
@@ -57,6 +57,17 @@ func RecordDefineVarType(fset *token.FileSet, ret *ast.AssignStmt) {
 			fmt.Println("-- assignVar ", assignVar, " assign type ...... ", assignType)
 			variableType[assignVar] = assignType
 		}
+		fmt.Println("[variableType] is ", variableType)
+	}
+	fmt.Println("---------------------")
+}
+
+func RecordDeclVarType(fset *token.FileSet, ret *ast.ValueSpec) {
+	fmt.Println("---------------------")
+	for _, declVar := range ret.Names {
+		declVarType := reflectType(fset, ret.Type)
+		fmt.Println("-- declVar ", declVar, " declare type ...... ", declVarType)
+		variableType[declVar.Name] = declVarType
 		fmt.Println("[variableType] is ", variableType)
 	}
 	fmt.Println("---------------------")
