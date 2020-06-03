@@ -2,6 +2,7 @@ package translator
 
 import (
 	"fmt"
+	"github.com/PioneerIncubator/betterGo/types"
 	"go/ast"
 	"go/token"
 )
@@ -28,7 +29,7 @@ func RecordAssignVarType(fset *token.FileSet, ret *ast.AssignStmt) {
 		for i, l := range ret.Lhs {
 			assignVar := reflectType(fset, l)
 			assignType := reflectType(fset, ret.Rhs[i])
-			if assignType == "CallExpr" {
+			if assignType == types.CallExprStr {
 				expr := ret.Rhs[i].(*ast.CallExpr)
 				if GetExprStr(fset, expr.Fun) == "make" {
 					fmt.Println("[reflectType] this is make, type is ")
@@ -39,19 +40,9 @@ func RecordAssignVarType(fset *token.FileSet, ret *ast.AssignStmt) {
 					}
 				}
 			}
-			if assignType == "BasicLit" {
+			if assignType == types.BasicLitStr {
 				expr := ret.Rhs[i].(*ast.BasicLit)
-				switch expr.Kind {
-				// 12345
-				case token.INT:
-					assignType = "int"
-
-					// FLOAT  // 123.45
-					// IMAG   // 123.45i
-					// CHAR   // 'a'
-					// STRING // "abc"
-					// literal_end
-				}
+				assignType = getBasicLitType(expr)
 			}
 
 			fmt.Println("-- assignVar ", assignVar, " assign type ...... ", assignType)
@@ -62,13 +53,38 @@ func RecordAssignVarType(fset *token.FileSet, ret *ast.AssignStmt) {
 	fmt.Println("---------------------")
 }
 
+func getBasicLitType(expr *ast.BasicLit) string {
+	switch expr.Kind {
+	case token.INT:
+		return "int"
+	case token.FLOAT:
+		return "float64"
+	case token.STRING:
+		return "string"
+	case token.CHAR:
+		return "char"
+	}
+	return ""
+}
+
 func RecordDeclVarType(fset *token.FileSet, ret *ast.ValueSpec) {
 	fmt.Println("---------------------")
-	for _, declVar := range ret.Names {
-		declVarType := reflectType(fset, ret.Type)
-		fmt.Println("-- declVar ", declVar, " declare type ...... ", declVarType)
-		variableType[declVar.Name] = declVarType
-		fmt.Println("[variableType] is ", variableType)
+	for i, declVar := range ret.Names {
+		if len(ret.Values) == 0 {
+			declVarType := reflectType(fset, ret.Type)
+			fmt.Println("-- declVar ", declVar, " declare type ...... ", declVarType)
+			variableType[declVar.Name] = declVarType
+			fmt.Println("[variableType] is ", variableType)
+		} else {
+			value := ret.Values[i]
+			declVarType := reflectType(fset, value)
+			fmt.Println("-- declVar ", declVar, " declare type ...... ", declVarType)
+			if declVarType == types.BasicLitStr {
+				declVarType = getBasicLitType(value.(*ast.BasicLit))
+			}
+			variableType[declVar.Name] = declVarType
+			fmt.Println("[variableType] is ", variableType)
+		}
 	}
 	fmt.Println("---------------------")
 }
@@ -82,7 +98,7 @@ func reflectType(fset *token.FileSet, arg interface{}) string {
 	case *ast.CallExpr:
 		s := GetExprStr(fset, x.Fun)
 		fmt.Println("[reflectType] funName ", s, " is ast.CallExpr ")
-		return "CallExpr"
+		return types.CallExprStr
 	case *ast.ParenExpr:
 		fmt.Println("[reflectType] ", s, " is ast.ParenExpr ")
 	case *ast.FuncLit:
@@ -91,7 +107,7 @@ func reflectType(fset *token.FileSet, arg interface{}) string {
 	case *ast.BasicLit:
 		s = x.Value
 		fmt.Println("[reflectType] ", s, " is ast.BasicLit ")
-		return "BasicLit"
+		return types.BasicLitStr
 	case *ast.Ident:
 		s = x.Name
 		fmt.Println("[reflectType] ", s, " is ast.Ident ")
