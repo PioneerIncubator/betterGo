@@ -1,4 +1,4 @@
-package _const
+package types
 
 const BasicLitStr = "BasicLit"
 const CallExprStr = "CallExpr"
