@@ -10,6 +10,9 @@ var variableType = map[string]string{}
 var assertPassCnt = 0
 var assertType = ""
 
+const BasicLitStr = "BasicLit"
+const CallExprStr = "CallExpr"
+
 func RecordAssertType(input string) {
 	fmt.Println("assertType is ", input)
 	assertType = input
@@ -28,7 +31,7 @@ func RecordAssignVarType(fset *token.FileSet, ret *ast.AssignStmt) {
 		for i, l := range ret.Lhs {
 			assignVar := reflectType(fset, l)
 			assignType := reflectType(fset, ret.Rhs[i])
-			if assignType == "CallExpr" {
+			if assignType == CallExprStr {
 				expr := ret.Rhs[i].(*ast.CallExpr)
 				if GetExprStr(fset, expr.Fun) == "make" {
 					fmt.Println("[reflectType] this is make, type is ")
@@ -39,7 +42,7 @@ func RecordAssignVarType(fset *token.FileSet, ret *ast.AssignStmt) {
 					}
 				}
 			}
-			if assignType == "BasicLit" {
+			if assignType == BasicLitStr {
 				expr := ret.Rhs[i].(*ast.BasicLit)
 				assignType = getBasicLitType(expr)
 			}
@@ -69,17 +72,16 @@ func getBasicLitType(expr *ast.BasicLit) string {
 func RecordDeclVarType(fset *token.FileSet, ret *ast.ValueSpec) {
 	fmt.Println("---------------------")
 	for i, declVar := range ret.Names {
-		switch lenOfValues := len(ret.Values); lenOfValues {
-		case 0:
+		if lenOfValues := len(ret.Values); lenOfValues == 0 {
 			declVarType := reflectType(fset, ret.Type)
 			fmt.Println("-- declVar ", declVar, " declare type ...... ", declVarType)
 			variableType[declVar.Name] = declVarType
 			fmt.Println("[variableType] is ", variableType)
-		default:
+		} else {
 			value := ret.Values[i]
 			declVarType := reflectType(fset, value)
 			fmt.Println("-- declVar ", declVar, " declare type ...... ", declVarType)
-			if declVarType == "BasicLit" {
+			if declVarType == BasicLitStr {
 				declVarType = getBasicLitType(value.(*ast.BasicLit))
 			}
 			variableType[declVar.Name] = declVarType
@@ -98,7 +100,7 @@ func reflectType(fset *token.FileSet, arg interface{}) string {
 	case *ast.CallExpr:
 		s := GetExprStr(fset, x.Fun)
 		fmt.Println("[reflectType] funName ", s, " is ast.CallExpr ")
-		return "CallExpr"
+		return CallExprStr
 	case *ast.ParenExpr:
 		fmt.Println("[reflectType] ", s, " is ast.ParenExpr ")
 	case *ast.FuncLit:
@@ -107,7 +109,7 @@ func reflectType(fset *token.FileSet, arg interface{}) string {
 	case *ast.BasicLit:
 		s = x.Value
 		fmt.Println("[reflectType] ", s, " is ast.BasicLit ")
-		return "BasicLit"
+		return BasicLitStr
 	case *ast.Ident:
 		s = x.Name
 		fmt.Println("[reflectType] ", s, " is ast.Ident ")
