@@ -41,17 +41,7 @@ func RecordAssignVarType(fset *token.FileSet, ret *ast.AssignStmt) {
 			}
 			if assignType == "BasicLit" {
 				expr := ret.Rhs[i].(*ast.BasicLit)
-				switch expr.Kind {
-				// 12345
-				case token.INT:
-					assignType = "int"
-
-					// FLOAT  // 123.45
-					// IMAG   // 123.45i
-					// CHAR   // 'a'
-					// STRING // "abc"
-					// literal_end
-				}
+				assignType = getBasicLitType(expr)
 			}
 
 			fmt.Println("-- assignVar ", assignVar, " assign type ...... ", assignType)
@@ -62,13 +52,39 @@ func RecordAssignVarType(fset *token.FileSet, ret *ast.AssignStmt) {
 	fmt.Println("---------------------")
 }
 
+func getBasicLitType(expr *ast.BasicLit) string {
+	switch expr.Kind {
+	case token.INT:
+		return "int"
+	case token.FLOAT:
+		return "float64"
+	case token.STRING:
+		return "string"
+	case token.CHAR:
+		return "char"
+	}
+	return ""
+}
+
 func RecordDeclVarType(fset *token.FileSet, ret *ast.ValueSpec) {
 	fmt.Println("---------------------")
-	for _, declVar := range ret.Names {
-		declVarType := reflectType(fset, ret.Type)
-		fmt.Println("-- declVar ", declVar, " declare type ...... ", declVarType)
-		variableType[declVar.Name] = declVarType
-		fmt.Println("[variableType] is ", variableType)
+	for i, declVar := range ret.Names {
+		switch lenOfValues := len(ret.Values); lenOfValues {
+		case 0:
+			declVarType := reflectType(fset, ret.Type)
+			fmt.Println("-- declVar ", declVar, " declare type ...... ", declVarType)
+			variableType[declVar.Name] = declVarType
+			fmt.Println("[variableType] is ", variableType)
+		default:
+			value := ret.Values[i]
+			declVarType := reflectType(fset, value)
+			fmt.Println("-- declVar ", declVar, " declare type ...... ", declVarType)
+			if declVarType == "BasicLit" {
+				declVarType = getBasicLitType(value.(*ast.BasicLit))
+			}
+			variableType[declVar.Name] = declVarType
+			fmt.Println("[variableType] is ", variableType)
+		}
 	}
 	fmt.Println("---------------------")
 }
