@@ -32,39 +32,38 @@ I do this shit for you :P
 
 目前，为实现泛型的需求，在Go语言中往往有如下几种方式[<sup>1</sup>](#refer-anchor-1)：
 
-> 1. Copy & paste
->
->    尽管这是一个看起来很笨的方法，但是结合实际应用情况，也许大多数情况下你只需要一两个类型就足够了，太早想到『优化』，带来的可能和你预期的有所出入。
->
->    优点：无需三方库，利用一些 IDE 或者编辑器插件，完成功能迅速。
->
->    缺点：代码有些臃肿，不符合 [Dry](https://link.zhihu.com/?target=https%3A//en.wikipedia.org/wiki/Don%27t_repeat_yourself) 编程原则。
->
-> 2. Interface （with method）
->
+> 1. Interface （with method）
 >    优点：无需三方库，代码干净而且通用。
->
 >    缺点：需要一些额外的代码量，以及也许没那么夸张的运行时开销。
->
-> 3. Use type assertions
->
+> 2. Use type assertions
 >    优点：无需三方库，代码干净。
->
 >    缺点：需要执行类型断言，接口转换的运行时开销，没有编译时类型检查。
->
-> 4. Reflection
->
+> 3. Reflection
 >    优点：干净
->
 >    缺点：相当大的运行时开销，没有编译时类型检查。
->
-> 5. Code generation
->
+> 4. Code generation
 >    优点：非常干净的代码(取决工具)，编译时类型检查（有些工具甚至允许编写针对通用代码模板的测试），没有运行时开销。
->
 >    缺点：构建需要第三方工具，如果一个模板为不同的目标类型多次实例化，编译后二进制文件较大。
 
-betterGo就是通过code generation来实现泛型
+`betterGo`就是通过`code generation`来实现泛型
+
+### 如何使用
+想用一下betterGo的，可以看看这个例子哈：
+
+克隆代码后，我们做了测试例子，代码就是`test/map/map.go`，你正常用`interface{}` 的函数就是`Enum.Map` 这样子用。
+
+然后想生成具体类型的函数，就运行这行命令：`go run main.go -w -f test/map/map.go`
+
+然后你发现 `test/map/map.go` 改变了，`Enum.Map` 变成了: `enum.MapOriginFn(origin, fn)`
+
+然后你看项目底下生成了： `utils/enum/map.go`，就是具体类型的函数
+
+### 参与项目
+关于参与项目的话，可以直接看代码，然后看到ast相关的包，就简单进去看看，猜猜什么意思，应该就可以理解这个项目以及代码了。
+
+如果想从理论出发的话，可以简单看看这本书：https://github.com/chai2010/go-ast-book ，其实他也就是把 ast 包里的代码简单讲讲。
+
+想参与具体开发的话，又没有想改进的地方，可以看看issue列表哈：https://github.com/PioneerIncubator/betterGo/issues
 
 ### 技术思路
 
