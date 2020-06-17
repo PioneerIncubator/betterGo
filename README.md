@@ -7,6 +7,7 @@ Before deployment, just use translator to generate specify type code, in which w
 
 Here are all generic functions:
 * enum.Reduce
+* enum.Map
 
 
 #### Implementation
@@ -18,6 +19,12 @@ Use go ast to analyse your code where using generic functions, generate specify 
 
 
 I do this shit for you :P
+
+# betterGo
+
+### Join Us
+
+![wechat group](https://user-images.githubusercontent.com/51999056/84882050-43bf2b00-b0c1-11ea-9142-f1a7ec774dbc.png)
 
 ### Background
 
