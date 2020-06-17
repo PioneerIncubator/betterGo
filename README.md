@@ -27,7 +27,6 @@ I do this shit for you :P
 
 
 <div align=center><img width="350" height="450" src="https://user-images.githubusercontent.com/51999056/84882050-43bf2b00-b0c1-11ea-9142-f1a7ec774dbc.png"/></div>
-
 ### Background
 
 现在的Go语言不支持泛型（像C++中的template、Java中的interface）
@@ -50,18 +49,18 @@ I do this shit for you :P
 `betterGo`就是通过`code generation`来实现泛型
 
 ### 如何使用
-想用一下betterGo的，可以看看这个例子哈：
+如果你想使用betterGo来通过自动生成代码的方式实现泛型，可以看下面的例子：
 
-克隆代码后，我们做了测试例子，代码就是`test/map/map.go`，你正常用`interface{}` 的函数就是`Enum.Map` 这样子用。
+在项目中包含了测试用例，例如，需要使用泛型的代码是`test/map/map.go`，如果想用`interface{}` 的函数就是`enum.Map` 这样子用。
 
-然后想生成具体类型的函数，就运行这行命令：`go run main.go -w -f test/map/map.go`
+如果想生成具体类型的函数，就运行这行命令：`go run main.go -w -f test/map/map.go`
 
-然后你发现 `test/map/map.go` 改变了，`Enum.Map` 变成了: `enum.MapOriginFn(origin, fn)`
+然后你发现 `test/map/map.go` 改变了，`enum.Map` 变成了: `enum.MapOriginFn(origin, fn)`
 
-然后你看项目底下生成了： `utils/enum/map.go`，就是具体类型的函数
+然后你看项目目录下生成了： `utils/enum/map.go`，就是具体类型的函数
 
 ### 参与项目
-关于参与项目的话，可以直接看代码，然后看到ast相关的包，就简单进去看看，猜猜什么意思，应该就可以理解这个项目以及代码了。
+如果想和我们一起完成项目的开发，可以直接看代码，然后看到ast相关的包，就简单进去看看，猜猜什么意思，应该就可以理解这个项目以及代码了。
 
 如果想从理论出发的话，可以简单看看这本书：https://github.com/chai2010/go-ast-book ，其实他也就是把 ast 包里的代码简单讲讲。
 
