@@ -1,4 +1,5 @@
 # betterGo
+
 Better Go implement parts that I think Golang missed
 
 #### Real Generic
@@ -60,11 +61,12 @@ I do this shit for you :P
 然后你看项目目录下生成了： `utils/enum/map.go`，就是具体类型的函数
 
 ### 参与项目
+
 如果想和我们一起完成项目的开发，可以直接看代码，然后看到ast相关的包，就简单进去看看，猜猜什么意思，应该就可以理解这个项目以及代码了。
 
 如果想从理论出发的话，可以简单看看这本书：https://github.com/chai2010/go-ast-book ，其实他也就是把 ast 包里的代码简单讲讲。
 
-想参与具体开发的话，又没有想改进的地方，可以看看issue列表哈：https://github.com/PioneerIncubator/betterGo/issues
+想参与具体开发的话，又没有想改进的地方，可以看看项目接下来的[TODO List](https://github.com/PioneerIncubator/betterGo/issues/31)
 
 ### 技术思路
 
@@ -88,4 +90,4 @@ I do this shit for you :P
 
 ### Reference
 
-<div id="refer-anchor-1"></div>- [1] [Go有什麽泛型的实现方法? - 达的回答 - 知乎](https://www.zhihu.com/question/62991191/answer/342121627)
+<div id="refer-anchor-1"></div><a href="https://www.zhihu.com/question/62991191/answer/342121627">[1] Go有什麽泛型的实现方法? - 达的回答 - 知乎</a>
