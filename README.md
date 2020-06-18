@@ -28,6 +28,7 @@ I do this shit for you :P
 
 
 <div align=center><img width="350" height="450" src="https://user-images.githubusercontent.com/51999056/84882050-43bf2b00-b0c1-11ea-9142-f1a7ec774dbc.png"/></div>
+
 ### Background
 
 现在的Go语言不支持泛型（像C++中的template、Java中的interface）
