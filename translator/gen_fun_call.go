@@ -62,8 +62,8 @@ func genFunctionBody(funName string) string {
 	return body
 }
 
-func GenEnumFunctionDecl(funName string, listOfArgs []ast.Expr) (string, string) {
-	paramsTypeDecl, _, _ := ExtractParamsTypeAndName(listOfArgs)
+func GenEnumFunctionDecl(fset *token.FileSet, funName string, listOfArgs []ast.Expr) (string, string) {
+	paramsTypeDecl, _, _ := ExtractParamsTypeAndName(fset, listOfArgs)
 	switch funName {
 	case "enum.Reduce":
 		// iterate function args to reveal the type
