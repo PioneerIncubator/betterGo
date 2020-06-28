@@ -76,6 +76,9 @@ func ExtractParamsTypeAndName(fset *token.FileSet, listOfArgs []ast.Expr) (strin
 
 func GetExprStr(fset *token.FileSet, expr interface{}) string {
 	name := new(bytes.Buffer)
-	printer.Fprint(name, fset, expr)
+	err := printer.Fprint(name, fset, expr)
+	if err != nil {
+		panic(err)
+	}
 	return name.String()
 }
