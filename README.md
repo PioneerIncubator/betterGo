@@ -2,12 +2,12 @@ English / [中文](https://github.com/PioneerIncubator/betterGo/blob/master/READ
 
 # betterGo
 
-Better Go implement parts that I think Golang missed
+betterGo implement parts that I think Golang missed
 
 ## Real Generic
 
 Provide the real interface{} to you so that you can use it in your code.
-Before deployment, just use translator to generate specify type code, in which way will not affect your performance.
+Before deployment, just use translator to generate specific type code, in which way will not affect your performance.
 
 Here are all generic functions:
 * enum.Reduce
@@ -15,7 +15,7 @@ Here are all generic functions:
 
 ### Implementation
 
-Use go ast to analyse your code where using generic functions, generate specify function for your types and replace your original call.
+Use go ast to analyse your code where using generic functions, generate specific function for your types and replace your original call expressions.
 
 ### What I actually do
 
@@ -50,9 +50,10 @@ The following ways are often used in Go in order to implement generics:
    Cons: Considerable runtime overhead, and no compile-time type checking.
 
 4. Code generation
-   Pros: Extremely clean code, compile-time type checking, no runtime overhead
-
-   Cons: Requires third-party libraries, larger compiled binaries
+   
+Pros: Extremely clean code, compile-time type checking, no runtime overhead.
+   
+   Cons: Requires third-party libraries, larger compiled binaries.
 
 `betterGo` is a generic implementation of `code generation`.
 
@@ -62,7 +63,7 @@ If you want to use `betterGo` to implement generics by automatically generating 
 
 There are test cases in the project, for example, the code that needs to be generic is `test/map/map.go`, if you want to use the `interface{}` function, just `enum.Map`.
 
-If you want to generate a function of a specific type, run this line of commands: `go run main.go -w -f test/map/map.go`
+If you want to generate a function of a specific type, run this command: `go run main.go -w -f test/map/map.go`
 
 Then you'll find that `test/map/map.go` has changed, `enum.Map` has become `enum.MapOriginFn(origin, fn)`.
 
@@ -90,7 +91,7 @@ If you want to start with theory, you can find some information on `AST` and stu
 
 3. When a statement containing the value/type of a variable  (`AssignStmt`, `FuncDecl`) is analyzed, the value and type of the variable are recorded and a mapping between them is established so that the type of the variable can be obtained from the variable name in subsequent sessions.
 
-4. When a function call expression (`CallExpr`) is found, it is checked whether the function is provided by us, and if it is, the code that deals specifically with that type is generated from the type corresponding to the argument namerecorded in the previous step and stored in the specified path (if code of the same type has already been generated before, it is not repeated).
+4. When a function call expression (`CallExpr`) is found, it is checked whether the function is provided by us, and if it is, the code that deals specifically with that type is generated from the type corresponding to the argument name recorded in the previous step and stored in the specified path (if code of the same type has already been generated before, it is not repeated).
 
 5. Replaces the original function call expression in the original code with a new function call expression that calls the newly generated function from the previous step, and updates the import package.
 
