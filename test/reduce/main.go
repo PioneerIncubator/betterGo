@@ -39,7 +39,7 @@ func main() {
 	floatOut := enum.Reduce(c, func(x, y float32) (z float32) {
 		z = x * y
 		return
-	}, 1).(float32)
+	}, 1.0).(float32)
 	var floatExpect float32 = 1.0
 	for i := range c {
 		floatExpect *= c[i]

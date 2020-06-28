@@ -20,13 +20,10 @@ func ExtractParamsTypeAndName(fset *token.FileSet, listOfArgs []ast.Expr) (strin
 		argname = utils.IncrementString(argname, "", 1)
 		switch x := arg.(type) {
 		case *ast.BasicLit:
-			switch x.Kind {
-			case token.INT:
-				argVarName := x.Value
-				listOfArgVarNames = append(listOfArgVarNames, argVarName)
-				listOfArgTypes = append(listOfArgTypes, "int")
-				paramsType = fmt.Sprintf("%s %s int", paramsType, argname)
-			}
+			argVarName := x.Value
+			listOfArgVarNames = append(listOfArgVarNames, argVarName)
+			listOfArgTypes = append(listOfArgTypes, GetBasicLitType(x))
+			paramsType = fmt.Sprintf("%s %s %s", paramsType, argname, GetBasicLitType(x))
 		case *ast.Ident:
 			argVarName := x.Name
 			listOfArgVarNames = append(listOfArgVarNames, argVarName)
@@ -79,6 +76,9 @@ func ExtractParamsTypeAndName(fset *token.FileSet, listOfArgs []ast.Expr) (strin
 
 func GetExprStr(fset *token.FileSet, expr interface{}) string {
 	name := new(bytes.Buffer)
-	printer.Fprint(name, fset, expr)
+	err := printer.Fprint(name, fset, expr)
+	if err != nil {
+		panic(err)
+	}
 	return name.String()
 }
