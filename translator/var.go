@@ -42,7 +42,7 @@ func RecordAssignVarType(fset *token.FileSet, ret *ast.AssignStmt) {
 			}
 			if assignType == types.BasicLitStr {
 				expr := ret.Rhs[i].(*ast.BasicLit)
-				assignType = getBasicLitType(expr)
+				assignType = GetBasicLitType(expr)
 			}
 
 			fmt.Println("-- assignVar ", assignVar, " assign type ...... ", assignType)
@@ -53,7 +53,7 @@ func RecordAssignVarType(fset *token.FileSet, ret *ast.AssignStmt) {
 	fmt.Println("---------------------")
 }
 
-func getBasicLitType(expr *ast.BasicLit) string {
+func GetBasicLitType(expr *ast.BasicLit) string {
 	switch expr.Kind {
 	case token.INT:
 		return "int"
@@ -80,7 +80,7 @@ func RecordDeclVarType(fset *token.FileSet, ret *ast.ValueSpec) {
 			declVarType := reflectType(fset, value)
 			fmt.Println("-- declVar ", declVar, " declare type ...... ", declVarType)
 			if declVarType == types.BasicLitStr {
-				declVarType = getBasicLitType(value.(*ast.BasicLit))
+				declVarType = GetBasicLitType(value.(*ast.BasicLit))
 			}
 			variableType[declVar.Name] = declVarType
 			fmt.Println("[variableType] is ", variableType)

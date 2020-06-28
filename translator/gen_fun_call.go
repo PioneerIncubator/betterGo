@@ -12,10 +12,7 @@ func extractParamsName(listOfArgs []ast.Expr) string {
 	for _, arg := range listOfArgs {
 		switch x := arg.(type) {
 		case *ast.BasicLit:
-			switch x.Kind {
-			case token.INT:
-				paramsName = strings.Title(fmt.Sprintf("%s int", paramsName))
-			}
+			paramsName = strings.Title(fmt.Sprintf("%s %s", paramsName, GetBasicLitType(x)))
 		case *ast.Ident:
 			paramsName = fmt.Sprintf("%s %s", paramsName, strings.Title(x.Name))
 		}
