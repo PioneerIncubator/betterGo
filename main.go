@@ -16,11 +16,11 @@ import (
 	"golang.org/x/tools/go/ast/astutil"
 )
 
-func replaceOriginFunc(ret *ast.CallExpr, callFunExpr, newFunName, filePath string, isDir bool) {
+func replaceOriginFunc(fset *token.FileSet, ret *ast.CallExpr, callFunExpr, newFunName, filePath string, isDir bool) {
 	s := strings.Split(callFunExpr, ".")
 	pkgName := s[0]
 	newFunName = fmt.Sprintf("%s.%s", pkgName, newFunName)
-	_, args, _ := translator.ExtractParamsTypeAndName(ret.Args)
+	_, args, _ := translator.ExtractParamsTypeAndName(fset, ret.Args)
 
 	originStr := fileoperations.GenCallExpr(callFunExpr, translator.GetAssertType(), args, false)
 	targetStr := fileoperations.GenCallExpr(newFunName, translator.GetAssertType(), args, true)
@@ -33,7 +33,7 @@ func replaceOriginFunc(ret *ast.CallExpr, callFunExpr, newFunName, filePath stri
 	}
 }
 
-func genTargetFuncImplement(ret *ast.CallExpr, callFunExpr, funDeclStr string) (bool, string) {
+func genTargetFuncImplement(fset *token.FileSet, ret *ast.CallExpr, callFunExpr, funDeclStr string) (bool, string) {
 	s := strings.Split(callFunExpr, ".")
 	pkgName := s[0]
 	funName := s[1]
@@ -42,7 +42,7 @@ func genTargetFuncImplement(ret *ast.CallExpr, callFunExpr, funDeclStr string) (
 	genFileName = strings.ToLower(genFileName)
 	filePath := fmt.Sprintf("%s/%s", genFilePath, genFileName)
 
-	_, _, listOfArgTypes := translator.ExtractParamsTypeAndName(ret.Args)
+	_, _, listOfArgTypes := translator.ExtractParamsTypeAndName(fset, ret.Args)
 	funcExists, previousFuncName := fileoperations.CheckFuncExists(filePath, listOfArgTypes)
 	if funcExists {
 		return true, previousFuncName
@@ -97,19 +97,19 @@ func loopASTNode(fset *token.FileSet, node *ast.File, filePath string, isDir, re
 				funName := translator.GetExprStr(fset, ret.Fun)
 				// fmt.Println("[CallExpr] funName", funName)
 				if strings.Contains(funName, "enum") {
-					newFunName, funDeclStr := translator.GenEnumFunctionDecl(funName, ret.Args)
+					newFunName, funDeclStr := translator.GenEnumFunctionDecl(fset, funName, ret.Args)
 					fmt.Println("[CallExpr] newfunName", newFunName)
 					fmt.Println("gen funDeclStr:  ", funDeclStr)
 
 					if rewriteAndGen {
 						// Generate function to file
-						funcExists, prevFuncName := genTargetFuncImplement(ret, funName, funDeclStr)
+						funcExists, prevFuncName := genTargetFuncImplement(fset, ret, funName, funDeclStr)
 
 						// Replace origin function call expression
 						if funcExists {
-							replaceOriginFunc(ret, funName, prevFuncName, filePath, isDir)
+							replaceOriginFunc(fset, ret, funName, prevFuncName, filePath, isDir)
 						} else {
-							replaceOriginFunc(ret, funName, newFunName, filePath, isDir)
+							replaceOriginFunc(fset, ret, funName, newFunName, filePath, isDir)
 						}
 					}
 				}

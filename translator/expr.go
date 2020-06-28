@@ -10,7 +10,7 @@ import (
 	"github.com/PioneerIncubator/betterGo/utils"
 )
 
-func ExtractParamsTypeAndName(listOfArgs []ast.Expr) (string, []string, []string) {
+func ExtractParamsTypeAndName(fset *token.FileSet, listOfArgs []ast.Expr) (string, []string, []string) {
 	var paramsType string
 	var listOfArgVarNames []string
 	var listOfArgTypes []string
@@ -40,10 +40,37 @@ func ExtractParamsTypeAndName(listOfArgs []ast.Expr) (string, []string, []string
 			}
 			fmt.Println("argVarType is ", argVarType)
 			paramsType = fmt.Sprintf("%s %s %s", paramsType, argname, argVarType)
-
-			if i != argsNum-1 {
-				paramsType += ","
+		case *ast.FuncLit:
+			argDeclar, retDeclar := "", ""
+			for _, v := range x.Type.Params.List {
+				fmt.Println("[ExtractParamsTypeAndName] arg name is ", len(v.Names), v.Names[0].Name)
+				lenNames := len(v.Names)
+				if argDeclar == "" {
+					lenNames -= 1
+					argDeclar = fmt.Sprintf("%s", GetExprStr(fset, v.Type))
+				}
+				for i := 0; i < lenNames; i++ {
+					argDeclar = fmt.Sprintf("%s,%s", argDeclar, GetExprStr(fset, v.Type))
+				}
 			}
+			for _, v := range x.Type.Results.List {
+				lenNames := len(v.Names)
+				if retDeclar == "" {
+					lenNames -= 1
+					retDeclar = fmt.Sprintf("%s", GetExprStr(fset, v.Type))
+				}
+				for i := 0; i < lenNames; i++ {
+					retDeclar = fmt.Sprintf("%s,%s", retDeclar, GetExprStr(fset, v.Type))
+				}
+			}
+
+			paramsType = fmt.Sprintf("%s %s func(%s)(%s)", paramsType, argname, argDeclar, retDeclar)
+		default:
+			fmt.Println("[ExtractParamsTypeAndName] Unknown type: ", x)
+		}
+
+		if i != argsNum-1 {
+			paramsType += ","
 		}
 	}
 	listOfArgTypes = append(listOfArgTypes, assertType)
