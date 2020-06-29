@@ -47,7 +47,7 @@ func ExtractParamsTypeAndName(fset *token.FileSet, listOfArgs []ast.Expr) (strin
 					argDeclar = fmt.Sprintf("%s", GetExprStr(fset, v.Type))
 				}
 				for i := 0; i < lenNames; i++ {
-					argDeclar = fmt.Sprintf("%s,%s", argDeclar, GetExprStr(fset, v.Type))
+					argDeclar = fmt.Sprintf("%s, %s", argDeclar, GetExprStr(fset, v.Type))
 				}
 			}
 			for _, v := range x.Type.Results.List {
@@ -61,7 +61,15 @@ func ExtractParamsTypeAndName(fset *token.FileSet, listOfArgs []ast.Expr) (strin
 				}
 			}
 
-			paramsType = fmt.Sprintf("%s %s func(%s)(%s)", paramsType, argname, argDeclar, retDeclar)
+			var lambdaTypeStr string
+			if len(x.Type.Results.List) == 1 {
+				lambdaTypeStr = fmt.Sprintf("func(%s) %s", argDeclar, retDeclar)
+			} else {
+				lambdaTypeStr = fmt.Sprintf("func(%s)(%s)", argDeclar, retDeclar)
+			}
+			paramsType = fmt.Sprintf("%s %s %s", paramsType, argname, lambdaTypeStr)
+			listOfArgVarNames = append(listOfArgVarNames, "lambda")
+			listOfArgTypes = append(listOfArgTypes, lambdaTypeStr)
 		default:
 			fmt.Println("[ExtractParamsTypeAndName] Unknown type: ", x)
 		}
