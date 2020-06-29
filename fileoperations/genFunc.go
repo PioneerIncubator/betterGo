@@ -23,10 +23,6 @@ func CheckFuncExists(filePath string, listOfArgTypes []string) (bool, string) {
 		return false, ""
 	}
 
-	for j, str := range listOfArgTypes {
-		listOfArgTypes[j] = regexp.QuoteMeta(str)
-	}
-
 	// Generate `target`, which will be used to match the function name in `filepath`
 	// It will be like `argname_1 int, argname_2 int\)`
 	var target string
