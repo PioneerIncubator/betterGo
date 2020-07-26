@@ -4,14 +4,14 @@ import (
 	"reflect"
 )
 
-func Delete(slice, anonymousFunc interface{}) bool {
+func Find(slice, anonymousFunc interface{}) interface{} {
 	in := reflect.ValueOf(slice)
 	if in.Kind() != reflect.Slice {
-		panic("delete: not slice")
+		panic("find: not slice")
 	}
 	n := in.Len()
 	if n == 0 {
-		return false
+		return nil
 	}
 
 	// Get slice element's type
@@ -24,14 +24,11 @@ func Delete(slice, anonymousFunc interface{}) bool {
 
 	var ins [1]reflect.Value
 
-	count := 0
 	for i := 0; i < n; i++ {
 		ins[0] = in.Index(i)
 		if fn.Call(ins[:])[0].Bool() {
-			in.Index(count).Set(ins[0])
-			count++
+			return ins[0].Interface()
 		}
 	}
-	in = in.Slice(0, count)
-	return true
+	return nil
 }
