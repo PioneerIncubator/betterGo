@@ -55,6 +55,35 @@ func genFunctionBody(funName string) string {
 				argname_1[i] = argname_2(argname_1[i])
 			}
 		`
+	case "Delete":
+		body = `
+			lenSlice := len(argname_1)
+			if lenSlice == 0 {
+				return false
+			}
+			count := 0
+			for i := range argname_1 {
+				if argname_2(argname_1[i]) {
+					argname_1[count] = argname_1[i]
+					count++
+				}
+			}
+			argname_1 = argname_1[:count]
+			return true
+		`
+	case "Find":
+		body = `
+			lenSlice := len(argname_1)
+			if lenSlice == 0 {
+				return nil
+			}
+			for i := range argname_1 {
+				if argname_2(argname_1[i]) {
+					return argname_1[i]
+				}
+			}
+			return nil
+		`
 	}
 	return body
 }
@@ -70,6 +99,10 @@ func GenEnumFunctionDecl(fset *token.FileSet, funName string, listOfArgs []ast.E
 		funName = "Add"
 	case "enum.Map":
 		funName = "Map"
+	case "enum.Delete":
+		funName = "Delete"
+	case "enum.Find":
+		funName = "Find"
 	}
 	functionBody := genFunctionBody(funName)
 
