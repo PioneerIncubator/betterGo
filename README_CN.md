@@ -12,8 +12,10 @@ betterGo实现了我认为Go所缺失的部分
 
 下面是已经实现的所有泛型函数：
 
-- `enum.Reduce`
-- `enum.Map`
+* `enum.Reduce`
+* `enum.Map`
+* `enum.Delete`: Delete slice's first element for which fun returns a truthy value.
+* `enum.Find`: Returns slice's first element for which fun returns a truthy value.
 
 ### 实现
 

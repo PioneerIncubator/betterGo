@@ -10,8 +10,10 @@ Provide the real interface{} to you so that you can use it in your code.
 Before deployment, just use translator to generate specific type code, in which way will not affect your performance.
 
 Here are all generic functions:
-* enum.Reduce
-* enum.Map
+* `enum.Reduce`
+* `enum.Map`
+* `enum.Delete`: Delete slice's first element for which fun returns a truthy value.
+* `enum.Find`: Returns slice's first element for which fun returns a truthy value.
 
 ### Implementation
 
