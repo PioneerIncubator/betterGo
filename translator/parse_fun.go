@@ -24,7 +24,7 @@ func getFunParamListRawStr(fset *token.FileSet, ret *ast.FuncDecl) string {
 
 func getFunRetListRawStr(fset *token.FileSet, ret *ast.FuncDecl) string {
 	retStr := ""
-	//NOTE (ret1 int,ret2 double )
+	// NOTE (ret1 int,ret2 double )
 	if ret.Type.Results == nil { // could be no return value
 		return retStr
 	}

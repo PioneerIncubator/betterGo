@@ -1,8 +1,7 @@
 run:
   skip-dirs:
-    - vendor
     - test
-  modules-download-mode: readonly
+    - vendor
 
 linters-settings:
   maligned:

@@ -9,7 +9,6 @@ deps:
 build: deps 
 
 lint:
-	# golint $$(go list ./... | grep -v vendor)
 	golangci-lint run
 
 test: lint deps unit-test

@@ -16,10 +16,6 @@ func Map(slice, anonymousFunc interface{}) {
 
 	elemType := in.Type().Elem()
 	fn := reflect.ValueOf(anonymousFunc)
-	//if !goodFunc(fn, elemType, elemType, elemType) {
-	//	 str := elemType.String()
-	//	 panic("apply: function must be of type func(" + str + ", " + str + ") " + str)
-	//}
 	if fn.Kind() != reflect.Func {
 		str := elemType.String()
 		panic("apply: function must be of type func(" + str + ", " + str + ") " + str)

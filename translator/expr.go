@@ -43,8 +43,8 @@ func ExtractParamsTypeAndName(fset *token.FileSet, listOfArgs []ast.Expr) (strin
 				fmt.Println("[ExtractParamsTypeAndName] arg name is ", len(v.Names), v.Names[0].Name)
 				lenNames := len(v.Names)
 				if argDeclar == "" {
-					lenNames -= 1
-					argDeclar = fmt.Sprintf("%s", GetExprStr(fset, v.Type))
+					lenNames--
+					argDeclar = GetExprStr(fset, v.Type)
 				}
 				for i := 0; i < lenNames; i++ {
 					argDeclar = fmt.Sprintf("%s, %s", argDeclar, GetExprStr(fset, v.Type))
@@ -53,8 +53,8 @@ func ExtractParamsTypeAndName(fset *token.FileSet, listOfArgs []ast.Expr) (strin
 			for _, v := range x.Type.Results.List {
 				lenNames := len(v.Names)
 				if retDeclar == "" {
-					lenNames -= 1
-					retDeclar = fmt.Sprintf("%s", GetExprStr(fset, v.Type))
+					lenNames--
+					retDeclar = GetExprStr(fset, v.Type)
 				}
 				for i := 0; i < lenNames; i++ {
 					retDeclar = fmt.Sprintf("%s,%s", retDeclar, GetExprStr(fset, v.Type))
