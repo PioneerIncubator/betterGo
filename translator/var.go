@@ -2,9 +2,10 @@ package translator
 
 import (
 	"fmt"
-	"github.com/PioneerIncubator/betterGo/types"
 	"go/ast"
 	"go/token"
+
+	"github.com/PioneerIncubator/betterGo/types"
 )
 
 var variableType = map[string]string{}

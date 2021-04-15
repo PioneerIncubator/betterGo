@@ -93,7 +93,7 @@ func GenEnumFunctionDecl(fset *token.FileSet, funName string, listOfArgs []ast.E
 	switch funName {
 	case "enum.Reduce":
 		// iterate function args to reveal the type
-		//Reduce(slice, pairFunction, zero interface{}) interface{}
+		// Reduce(slice, pairFunction, zero interface{}) interface{}
 		funName = "Reduce"
 	case "enum.Add":
 		funName = "Add"
