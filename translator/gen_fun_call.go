@@ -84,7 +84,50 @@ func genFunctionBody(funName string) string {
 			}
 			return nil
 		`
+	case "Sum":
+		body = `
+			lenSlice := len(argname_1)
+			if lenSlice == 0 {
+				return nil
+			}
+			sum := argname_1[0]
+			for i := range argname_1 {
+				sum += i
+			}
+			sum = sum - argname_1[0]
+			return sum
+		`
+
+	case "Max":
+		body = `
+			lenSlice := len(argname_1)
+			if lenSlice == 0 {
+				return nil
+			}
+			maxValue := argname_1[0]
+			for i := range argname_1 {
+				if(i > maxValue) {
+					maxValue = i
+				}
+			}
+			return maxValue
+		`
+	case "Min":
+		body = `
+			lenSlice := len(argname_1)
+			if lenSlice == 0 {
+				return nil
+			}
+			minValue := argname_1[0]
+			for i := range argname_1 {
+				if(i < minValue) {
+					minValue = i
+				}
+			}
+			return minValue
+		`
 	}
+
 	return body
 }
 
@@ -103,6 +146,12 @@ func GenEnumFunctionDecl(fset *token.FileSet, funName string, listOfArgs []ast.E
 		funName = "Delete"
 	case "enum.Find":
 		funName = "Find"
+	case "enum.Sum":
+		funName = "Sum"
+	case "enum.Max":
+		funName = "Max"
+	case "enum.Min":
+		funName = "Min"
 	}
 	functionBody := genFunctionBody(funName)
 
