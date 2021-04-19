@@ -57,7 +57,7 @@ func ReplaceOriginFuncByFile(file, origin, target string) {
 		replaceOriginImport(file, oldImport, newImport)
 
 	} else {
-		fmt.Println("Can't find ", origin)
+		fmt.Println("ReplaceOriginFuncByFile Can't find ", origin)
 	}
 }
 
@@ -83,7 +83,7 @@ func replaceOriginImport(file, origin, target string) {
 		}
 		fmt.Println(origin, "has been replaced with", target)
 	} else {
-		fmt.Println("Can't find ", origin)
+		fmt.Println("ReplaceOriginImport Can't find ", origin)
 	}
 }
 
