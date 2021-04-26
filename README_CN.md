@@ -25,9 +25,7 @@ betterGo实现了我认为Go所缺失的部分
 
 ![](https://pic1.zhimg.com/50/v2-dd2dc3bc72b058b85774ee804a521165_hd.webp)
 
-### 加入我们
-
-<div align=center><img width="350" height="450" src="https://user-images.githubusercontent.com/51999056/85591200-af803580-b677-11ea-93d4-2f62ca85e4a6.png"/></div>
+### [视频介绍](https://www.bilibili.com/video/BV1oT4y1j7L2?from=search&seid=10341891677310558379)
 
 ### 背景
 
