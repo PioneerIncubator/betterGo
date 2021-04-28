@@ -8,6 +8,7 @@ import (
 	"go/token"
 
 	"github.com/PioneerIncubator/betterGo/utils"
+	log "github.com/sirupsen/logrus"
 )
 
 func ExtractParamsTypeAndName(fset *token.FileSet, listOfArgs []ast.Expr) (string, []string, []string) {
@@ -28,19 +29,20 @@ func ExtractParamsTypeAndName(fset *token.FileSet, listOfArgs []ast.Expr) (strin
 			argVarName := x.Name
 			listOfArgVarNames = append(listOfArgVarNames, argVarName)
 			listOfArgTypes = append(listOfArgTypes, variableType[argVarName])
-			fmt.Println("argVarName is ", argVarName)
 			var argVarType string
 			if paramType, ok := variableType[DecorateParamName(argVarName)]; ok {
 				argVarType = paramType
 			} else {
 				argVarType = variableType[argVarName]
 			}
-			fmt.Println("argVarType is ", argVarType)
+			log.WithFields(log.Fields{
+				"name": argVarName,
+				"type": argVarType,
+			}).Info("Find an identifier from function parameters")
 			paramsType = fmt.Sprintf("%s %s %s", paramsType, argname, argVarType)
 		case *ast.FuncLit:
 			argDeclar, retDeclar := "", ""
 			for _, v := range x.Type.Params.List {
-				fmt.Println("[ExtractParamsTypeAndName] arg name is ", len(v.Names), v.Names[0].Name)
 				lenNames := len(v.Names)
 				if argDeclar == "" {
 					lenNames--
@@ -71,7 +73,7 @@ func ExtractParamsTypeAndName(fset *token.FileSet, listOfArgs []ast.Expr) (strin
 			listOfArgVarNames = append(listOfArgVarNames, "lambda")
 			listOfArgTypes = append(listOfArgTypes, lambdaTypeStr)
 		default:
-			fmt.Println("[ExtractParamsTypeAndName] Unknown type: ", x)
+			log.Error("Unknown type: ", x)
 		}
 
 		if i != argsNum-1 {
@@ -86,7 +88,7 @@ func GetExprStr(fset *token.FileSet, expr interface{}) string {
 	name := new(bytes.Buffer)
 	err := printer.Fprint(name, fset, expr)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	return name.String()
 }

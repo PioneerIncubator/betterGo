@@ -2,12 +2,14 @@ package enum
 
 import (
 	"reflect"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func Delete(slice, anonymousFunc interface{}) bool {
 	in := reflect.ValueOf(slice)
 	if in.Kind() != reflect.Slice {
-		panic("delete: not slice")
+		log.Fatal("Input is not slice")
 	}
 	n := in.Len()
 	if n == 0 {
@@ -19,7 +21,7 @@ func Delete(slice, anonymousFunc interface{}) bool {
 	fn := reflect.ValueOf(anonymousFunc)
 	if fn.Kind() != reflect.Func {
 		str := elemType.String()
-		panic("apply: function must be of type func(" + str + ", " + str + ")" + str)
+		log.Fatal("Function must be of type func(" + str + ", " + str + ")" + str)
 	}
 
 	var ins [1]reflect.Value

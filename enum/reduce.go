@@ -2,6 +2,8 @@ package enum
 
 import (
 	"reflect"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Reduce computes the reduction of the pair function across the elements of
@@ -17,7 +19,8 @@ import (
 func Reduce(slice, pairFunction, zero interface{}) interface{} {
 	in := reflect.ValueOf(slice)
 	if in.Kind() != reflect.Slice {
-		panic("reduce: not slice")
+		log.Fatal("Input is not slice")
+
 	}
 	n := in.Len()
 	switch n {
@@ -30,7 +33,7 @@ func Reduce(slice, pairFunction, zero interface{}) interface{} {
 	fn := reflect.ValueOf(pairFunction)
 	if !goodFunc(fn, elemType, elemType, elemType) {
 		str := elemType.String()
-		panic("apply: function must be of type func(" + str + ", " + str + ") " + str)
+		log.Fatal("Function must be of type func(" + str + ", " + str + ") " + str)
 	}
 	// Do the first two by hand to prime the pump.
 	var ins [2]reflect.Value

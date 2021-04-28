@@ -9,6 +9,8 @@ import (
 	"os"
 	"regexp"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func checkFileExists(filePath string) bool {
@@ -28,7 +30,7 @@ func CheckFuncExists(filePath string, listOfArgTypes []string) (bool, string) {
 	var target string
 	switch length := len(listOfArgTypes); length {
 	case 0:
-		panic("Error:There is no argument in listOfArgTypes")
+		log.Fatal("Error:There is no argument in listOfArgTypes")
 	case 1:
 		// There is no comma behind %s because there just have only one arg
 		target = fmt.Sprintf("argname_%d %s", 1, listOfArgTypes[0])
@@ -45,7 +47,10 @@ func CheckFuncExists(filePath string, listOfArgTypes []string) (bool, string) {
 	}
 	target = regexp.QuoteMeta(target)
 
-	fmt.Printf("Finding %s in %s...\n", target, filePath)
+	log.WithFields(log.Fields{
+		"target":   target,
+		"filePath": filePath,
+	}).Info("The target function is being checked from the file for existence")
 	funcExists, funcName := matchFunc(filePath, target)
 
 	return funcExists, funcName
@@ -54,12 +59,12 @@ func CheckFuncExists(filePath string, listOfArgTypes []string) (bool, string) {
 func matchFunc(filePath, origin string) (bool, string) {
 	f, err := os.OpenFile(filePath, os.O_RDWR, 0666)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	defer func() {
 		err := f.Close()
 		if err != nil {
-			fmt.Println(err)
+			log.Error(err)
 		}
 	}()
 
@@ -70,13 +75,14 @@ func matchFunc(filePath, origin string) (bool, string) {
 			if err == io.EOF {
 				return false, ""
 			}
-			panic(err)
+			log.Fatal(err)
 		}
 
 		if ok, _ := regexp.Match(origin, line); ok {
-			fmt.Println("Function has been generated before!")
 			funcName := getFuncNameFromLine(line)
-			fmt.Println("Previous function name:", funcName)
+			log.WithFields(log.Fields{
+				"prevFuncName": funcName,
+			}).Warn("Function has been generated before!")
 			return true, funcName
 		}
 	}
@@ -112,7 +118,7 @@ func ensureFileExists(filePath string) (*os.File, bool, error) {
 	var err error
 	exist := false
 	if err = ensureDirExists(filePath); err != nil {
-		fmt.Println(err)
+		log.Error(err)
 	}
 	if checkFileExists(filePath) {
 		exist = true
@@ -122,7 +128,7 @@ func ensureFileExists(filePath string) (*os.File, bool, error) {
 	}
 
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	return f, exist, err
@@ -132,17 +138,17 @@ func WriteFuncToFile(filePath, packageName string, input []byte) error {
 	var err error
 	input, err = format.Source(input)
 	if err != nil {
-		fmt.Println(err)
+		log.Error(err)
 	}
 	f, exist, err := ensureFileExists(filePath)
 	defer func() {
 		err := f.Close()
 		if err != nil {
-			fmt.Println(err)
+			log.Error(err)
 		}
 	}()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	writer := bufio.NewWriter(f)

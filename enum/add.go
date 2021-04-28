@@ -1,14 +1,16 @@
 package enum
 
 import (
-	"fmt"
+	log "github.com/sirupsen/logrus"
 )
 
 func Add(a, b interface{}) interface{} {
 
 	switch typeAB := a.(type) {
 	default:
-		fmt.Printf("Unexpected type %T", typeAB)
+		log.WithFields(log.Fields{
+			"type": typeAB,
+		}).Fatal("Unexpected type!")
 		return nil
 	case int:
 		return a.(int) + b.(int)
