@@ -1,10 +1,10 @@
 package utils
 
 import (
-	"fmt"
-	"os"
 	"strconv"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func IncrementString(str string, separator string, first int) string {
@@ -22,8 +22,7 @@ func IncrementString(str string, separator string, first int) string {
 		i, err := strconv.Atoi(test[1])
 
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatal(err)
 		}
 		increased := i + first
 		return test[0] + separator + strconv.Itoa(increased)

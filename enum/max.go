@@ -1,14 +1,15 @@
 package enum
 
-import(
+import (
 	"reflect"
-	"fmt"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func Max(slice interface{}) interface{} {
 	in := reflect.ValueOf(slice)
 	if in.Kind() != reflect.Slice {
-		panic("Max: not slice")
+		log.Fatal("Input is not slice")
 	}
 	n := in.Len()
 	if n == 0 {
@@ -17,28 +18,30 @@ func Max(slice interface{}) interface{} {
 
 	switch sliceType := slice.(type) {
 	default:
-		fmt.Printf("Unexpected type %T", sliceType)
+		log.WithFields(log.Fields{
+			"type": sliceType,
+		}).Fatal("Unexpected type!")
 		return nil
-	
+
 	//reflect.value only return int64 and float64
 	case []int:
 		var maxVal int64
 		maxVal = in.Index(0).Int()
 		for i := 1; i < n; i++ {
-			if(in.Index(i).Int() > maxVal) {
+			if in.Index(i).Int() > maxVal {
 				maxVal = in.Index(i).Int()
 			}
 		}
 		return maxVal
-	
+
 	case []float64:
 		var maxVal float64
 		maxVal = in.Index(0).Float()
 		for i := 1; i < n; i++ {
-			if(in.Index(i).Float() > maxVal) {
+			if in.Index(i).Float() > maxVal {
 				maxVal = in.Index(i).Float()
 			}
 		}
 		return maxVal
-}
+	}
 }

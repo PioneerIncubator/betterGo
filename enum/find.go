@@ -2,12 +2,14 @@ package enum
 
 import (
 	"reflect"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func Find(slice, anonymousFunc interface{}) interface{} {
 	in := reflect.ValueOf(slice)
 	if in.Kind() != reflect.Slice {
-		panic("find: not slice")
+		log.Fatal("Input is not slice")
 	}
 	n := in.Len()
 	if n == 0 {
@@ -19,7 +21,7 @@ func Find(slice, anonymousFunc interface{}) interface{} {
 	fn := reflect.ValueOf(anonymousFunc)
 	if fn.Kind() != reflect.Func {
 		str := elemType.String()
-		panic("apply: function must be of type func(" + str + ", " + str + ")" + str)
+		log.Fatal("Function must be of type func(" + str + ", " + str + ")" + str)
 	}
 
 	var ins [1]reflect.Value

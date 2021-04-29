@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Generate function calling statement by funName and arguments
@@ -37,14 +39,17 @@ func GenCallExpr(funName, assertType string, listOfArgs []string, isNew bool) st
 func ReplaceOriginFuncByFile(file, origin, target string) {
 	output, needHandle, err := readFile(file, origin, target)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	if needHandle {
 		err = writeCallExprToFile(file, output)
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
-		fmt.Println(origin, "has been replaced with", target)
+		log.WithFields(log.Fields{
+			"originCallExpr": origin,
+			"targetCallExpr": target,
+		}).Info("Replace function call expression successfully")
 
 		// replace import statement
 		dir, _ := os.Getwd()                                  // get current dir, equal to "pwd", like "/Users/.../src/.../test"
@@ -57,16 +62,19 @@ func ReplaceOriginFuncByFile(file, origin, target string) {
 		replaceOriginImport(file, oldImport, newImport)
 
 	} else {
-		fmt.Println("ReplaceOriginFuncByFile Can't find ", origin)
+		log.WithFields(log.Fields{
+			"originCallExpr": origin,
+		}).Error("Replace function call expression failed, the expr to be replaced was not found!")
 	}
 }
 
 func ReplaceOriginFuncByDir(path, origin, target string) {
 	files := getFiles(path)
 	for _, file := range files {
-		fmt.Println("File:", file, "is been replacing...")
+		log.WithFields(log.Fields{
+			"fileName": file,
+		}).Info("The function call expression is being replaced")
 		ReplaceOriginFuncByFile(file, origin, target)
-		fmt.Println("File:", file, "...done")
 	}
 }
 
@@ -74,16 +82,21 @@ func replaceOriginImport(file, origin, target string) {
 	origin = regexp.QuoteMeta(origin)
 	output, needHandle, err := readFile(file, origin, target)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	if needHandle {
 		err = writeCallExprToFile(file, output)
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
-		fmt.Println(origin, "has been replaced with", target)
+		log.WithFields(log.Fields{
+			"originImportStmt": origin,
+			"targetImportStmt": target,
+		}).Info("Replace import statement successfully")
 	} else {
-		fmt.Println("ReplaceOriginImport Can't find ", origin)
+		log.WithFields(log.Fields{
+			"originImportStmt": origin,
+		}).Error("Replace import statement failed, the stmt to be replaced was not found!")
 	}
 }
 
@@ -96,7 +109,7 @@ func readFile(filePath, origin, target string) ([]byte, bool, error) {
 	defer func() {
 		err := f.Close()
 		if err != nil {
-			fmt.Println(err)
+			log.Error(err)
 		}
 	}()
 	reader := bufio.NewReader(f)
@@ -112,7 +125,10 @@ func readFile(filePath, origin, target string) ([]byte, bool, error) {
 		}
 
 		if ok, _ := regexp.Match(origin, line); ok {
-			fmt.Println("Statement match success!")
+			log.WithFields(log.Fields{
+				"filePath":  filePath,
+				"statement": origin,
+			}).Info("The statement was found from the file")
 			reg := regexp.MustCompile(origin)
 			newByte := reg.ReplaceAll(line, []byte(target))
 			output = append(output, newByte...)
@@ -131,12 +147,12 @@ func readFile(filePath, origin, target string) ([]byte, bool, error) {
 func writeCallExprToFile(filePath string, input []byte) error {
 	f, err := os.OpenFile(filePath, os.O_WRONLY|os.O_TRUNC, 0600)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	defer func() {
 		err := f.Close()
 		if err != nil {
-			fmt.Println(err)
+			log.Error(err)
 		}
 	}()
 	writer := bufio.NewWriter(f)
@@ -146,7 +162,7 @@ func writeCallExprToFile(filePath string, input []byte) error {
 	}
 	err = writer.Flush()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	return nil
 }
@@ -164,7 +180,9 @@ func getFiles(path string) []string {
 		return nil
 	})
 	if err != nil {
-		fmt.Printf("filepath.Walk() returned %v\n", err)
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Error("Error getting file from directory")
 	}
 	return files
 }

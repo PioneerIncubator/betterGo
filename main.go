@@ -5,11 +5,11 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"log"
 	"os"
 	"strings"
 
 	"github.com/PioneerIncubator/betterGo/fileoperations"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/PioneerIncubator/betterGo/translator"
 	"github.com/urfave/cli/v2"
@@ -52,7 +52,7 @@ func genTargetFuncImplement(fset *token.FileSet, ret *ast.CallExpr, callFunExpr,
 	pkgStatement := fmt.Sprintf("package %s", pkgName)
 	err := fileoperations.WriteFuncToFile(filePath, pkgStatement, buffer)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	return false, previousFuncName
@@ -74,23 +74,36 @@ func loopASTNode(fset *token.FileSet, node *ast.File, filePath string, isDir, re
 			n := cr.Node()
 			switch ret := n.(type) {
 			case *ast.GenDecl:
-				fmt.Println("[GenDecl] is ", ret)
+				log.WithFields(log.Fields{
+					"astNodeType": ret,
+				}).Info("Find a general declaration")
 			case *ast.ValueSpec:
-				fmt.Println("[ValueSpec] is ", ret)
+				log.WithFields(log.Fields{
+					"astNodeType": ret,
+				}).Info("Find a constant or variable declaration")
 				translator.RecordDeclVarType(fset, ret)
 			case *ast.AssignStmt:
+				log.WithFields(log.Fields{
+					"astNodeType": ret,
+				}).Info("Find an assign statement")
 				if ret.Tok == token.DEFINE { // a := 12
 					translator.RecordAssignVarType(fset, ret)
 				}
 			case *ast.FuncDecl:
 				if ret.Name.Name != "main" {
-					fmt.Println("find function declar  ", ret.Name.Name)
+					log.WithFields(log.Fields{
+						"astNodeType": ret,
+						"funcName":    ret.Name.Name,
+					}).Info("Find a function declaration")
 					translator.GetFuncType(fset, ret)
 				}
 			case *ast.TypeAssertExpr:
 				//TODO: expr lik out := enum.Reduce(a, mul, 1).(int)
 				// Assert is parse before function call
 				// which means we 'll parse (int) then enum.Reduce
+				log.WithFields(log.Fields{
+					"astNodeType": ret,
+				}).Info("Find a type assert expression")
 				assertType := translator.GetExprStr(fset, ret.Type)
 				translator.RecordAssertType(assertType)
 			case *ast.CallExpr:
@@ -98,8 +111,11 @@ func loopASTNode(fset *token.FileSet, node *ast.File, filePath string, isDir, re
 				// fmt.Println("[CallExpr] funName", funName)
 				if strings.Contains(funName, "enum") {
 					newFunName, funDeclStr := translator.GenEnumFunctionDecl(fset, funName, ret.Args)
-					fmt.Println("[CallExpr] newfunName", newFunName)
-					fmt.Println("gen funDeclStr:  ", funDeclStr)
+					log.WithFields(log.Fields{
+						"astNodeType":    ret,
+						"newFunName":     newFunName,
+						"newFunDeclStmt": funDeclStr,
+					}).Info("Find a call expression")
 
 					if rewriteAndGen {
 						// Generate function to file
@@ -123,7 +139,10 @@ func loopASTFile(filePath string, rewriteAndGen bool) {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
-		log.Fatal(err)
+		log.WithFields(log.Fields{
+			"filePath": filePath,
+			"err":      err,
+		}).Fatal("Parse file fail")
 	}
 	loopASTNode(fset, node, filePath, false, rewriteAndGen)
 }
@@ -132,13 +151,13 @@ func loopASTDir(filePath string, rewriteAndGen bool) {
 	fset := token.NewFileSet()
 	pkgs, err := parser.ParseDir(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
-		fmt.Println("parse dir fail", filePath)
-		log.Fatal(err)
+		log.WithFields(log.Fields{
+			"dirPath": filePath,
+			"err":     err,
+		}).Fatal("Parse dir fail")
 	}
-	for k, v := range pkgs {
-		fmt.Println("pkg k is ", k)
-		for filename, fileNode := range v.Files {
-			fmt.Println("filename  is ", filename)
+	for _, v := range pkgs {
+		for _, fileNode := range v.Files {
 			loopASTNode(fset, fileNode, filePath, true, rewriteAndGen)
 		}
 	}
@@ -146,6 +165,10 @@ func loopASTDir(filePath string, rewriteAndGen bool) {
 }
 
 func main() {
+	log.SetFormatter(&log.TextFormatter{})
+	log.SetOutput(os.Stdout)
+	log.SetLevel(log.InfoLevel)
+
 	app := &cli.App{
 		Flags: []cli.Flag{
 			&cli.StringFlag{

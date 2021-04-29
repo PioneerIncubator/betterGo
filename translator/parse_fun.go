@@ -1,24 +1,22 @@
 package translator
 
 import (
-	"fmt"
 	"go/ast"
 	"go/token"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func getFunParamListRawStr(fset *token.FileSet, ret *ast.FuncDecl) string {
 	paramsStr := "func ("
-	for i, v := range ret.Type.Params.List {
-		fmt.Println("[getFunParamListRawStr] loop ret.Type.Params.List", i)
+	for _, v := range ret.Type.Params.List {
 		exprType := GetExprStr(fset, v.Type)
 		for j := 0; j < len(v.Names); j++ {
-			fmt.Println("[getFunParamListRawStr] compose paramStr", paramsStr)
 			// func mul(a, b int) int
 			paramsStr = paramsStr + exprType + ", "
 		}
 	}
 	paramsStr = paramsStr[:len(paramsStr)-2] + " )"
-	fmt.Println("[getFunParamListRawStr] final paramStr", paramsStr)
 	return paramsStr
 }
 
@@ -35,12 +33,10 @@ func getFunRetListRawStr(fset *token.FileSet, ret *ast.FuncDecl) string {
 			retStr = exprType
 		} else {
 			for j := 0; j < len(v.Names); j++ {
-				fmt.Println("[getFunRetListRawStr] retStr", retStr)
 				retStr += exprType
 			}
 		}
 	}
-	fmt.Println("[getFunRetListRawStr] retStr", retStr)
 	return retStr
 }
 
@@ -53,7 +49,11 @@ func recordParamType(fset *token.FileSet, ret *ast.FuncType) {
 		exprType := GetExprStr(fset, v.Type)
 		for _, name := range v.Names {
 			nameStr := GetExprStr(fset, name)
-			fmt.Printf("[recordParamType] param name %s record as %s, value %s\n", nameStr, DecorateParamName(nameStr), exprType)
+			log.WithFields(log.Fields{
+				"name":   nameStr,
+				"record": DecorateParamName(nameStr),
+				"value":  exprType,
+			}).Info("Mapping param name and param type")
 			variableType[DecorateParamName(nameStr)] = exprType
 		}
 	}
@@ -65,7 +65,10 @@ func GetFuncType(fset *token.FileSet, ret *ast.FuncDecl) (string, string) {
 	retStr := getFunRetListRawStr(fset, ret)
 	recordParamType(fset, ret.Type)
 
-	fmt.Println("[GetFuncType] record ", ret.Name.Name, " func origin type is ", paramsStr+retStr)
+	log.WithFields(log.Fields{
+		"name":  ret.Name.Name,
+		"value": paramsStr + retStr,
+	}).Info("Mapping param name and param type")
 	variableType[ret.Name.Name] = paramsStr + retStr
 	return paramsStr + retStr, retStr
 	// fmt.Println("[FuncDecl] Type.Results", ret.Type.Results.List)
